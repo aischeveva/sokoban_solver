@@ -1,5 +1,5 @@
-#ifndef BUTTON_HPP
-#define BUTTON_HPP
+#ifndef BLOCK_HPP
+#define BLOCK_HPP
 
 /** 
  * \class Block
@@ -22,16 +22,9 @@ enum BlockType {
     Outer
 };
 
-/* enumeration types for directions */
-enum Directions {
-    North,
-    East,
-    South,
-    West
-};
 
 class Block {
-    protected:
+    private:
         int xCoordinate_; ///< x-coordinate of the block
         int yCoordinate_; ///< y-coordinate of the block
         BlockType type_;  ///< block type

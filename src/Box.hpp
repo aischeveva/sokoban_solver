@@ -1,5 +1,6 @@
-#ifndef BLOCK_HPP
-#define BLOCK_HPP
+#ifndef BOX_HPP
+#define BOX_HPP
+
 
 /** 
  * \class Box

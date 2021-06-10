@@ -1,6 +1,6 @@
-#include "Box.hpp"
+#include "Object.hpp"
 
-void Box::push(Direction dir){
+void Object::move(Direction dir){
     switch(dir){
         case North: yCoordinate_++; break;
         case South: yCoordinate_--; break;

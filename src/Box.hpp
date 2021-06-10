@@ -1,6 +1,7 @@
 #ifndef BOX_HPP
 #define BOX_HPP
 
+#include "Object.hpp"
 
 /** 
  * \class Box
@@ -23,23 +24,20 @@ enum Direction {
     West
 };
 
-class Box {
+class Box: public Object {
     private:
-        int xCoordinate_;
-        int yCoordinate_;
         bool isDelivered_;
     
     public:
-        Box(int xCoord, int yCoord):xCoordinate_(xCoord), yCoordinate_(yCoord), isDelivered_(false){}
+        Box(int x, int y): Object(x, y){ isDelivered_ = false; }
+        Box(int x, int y, bool isDelivered): Object(x, y){ isDelivered_ = isDelivered;}
 
         /* Getters */
-        int GetX() const {return xCoordinate_;}
-        int GetY() const {return yCoordinate_;}
         bool isDelivered() const {return isDelivered_;}
 
         /* Setters */
         void deliver() {isDelivered_ = true;}
-        void push(Direction dir);
+        void unDeliver() {isDelivered_ = false;}
 };
 
 #endif

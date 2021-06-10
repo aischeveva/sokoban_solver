@@ -3,8 +3,10 @@
 
 #include "Block.hpp"
 #include "Box.hpp"
+#include "Pusher.hpp"
 #include <vector>
 #include <iostream>
+#include <fstream>
 #include <string>
 
 /** 
@@ -25,6 +27,7 @@ class Board {
         int nRows_, nCols_;
         std::vector<std::vector<Block>> blocks_;
         std::vector<Box> boxes_;
+        Pusher pusher_;
     
     public:
         Board();
@@ -37,7 +40,8 @@ class Board {
 
         bool addBlock(Block block);
         void addBox(Box box);
-        void readBoard(std::string filename, int level);
+        void addPusher(Pusher pusher);
+        void readBoard(std::string filename, char level);
 
 };
 

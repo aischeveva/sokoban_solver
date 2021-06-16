@@ -26,15 +26,16 @@ enum Direction {
 
 class Object {
     protected:
-        int xCoordinate_;
-        int yCoordinate_;
+        unsigned int xCoordinate_;
+        unsigned int yCoordinate_;
 
     public:
-        Object(int x, int y): xCoordinate_(x), yCoordinate_(y){}
+        Object(){}
+        Object(unsigned int x, unsigned int y): xCoordinate_(x), yCoordinate_(y){}
 
         /* Getters */
-        int GetX() const {return xCoordinate_;}
-        int GetY() const {return yCoordinate_;}
+        unsigned int GetX() const {return xCoordinate_;}
+        unsigned int GetY() const {return yCoordinate_;}
 
         void move(Direction dir);
 };

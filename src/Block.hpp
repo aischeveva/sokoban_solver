@@ -1,5 +1,6 @@
 #ifndef BLOCK_HPP
 #define BLOCK_HPP
+#include <iostream>
 
 /** 
  * \class Block
@@ -79,6 +80,7 @@ class Block {
          */
         void free() {occupied_ = false;}
 
+        void print() {std::cout<<"Block of type "<<type_<<" at ("<<xCoordinate_<<","<<yCoordinate_<<"), occupied: "<<occupied_<<std::endl;}
 };
 
 #endif

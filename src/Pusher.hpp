@@ -17,7 +17,8 @@
 
 class Pusher: public Object {
     public:
-        Pusher(int x, int y): Object(x, y){}
+        Pusher(){}
+        Pusher(unsigned int x, unsigned int y): Object(x, y){}
 };
 
 #endif

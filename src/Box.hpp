@@ -16,21 +16,13 @@
  *
  */ 
 
-/* enumeration types for directions */
-enum Direction {
-    North,
-    East,
-    South,
-    West
-};
-
 class Box: public Object {
     private:
         bool isDelivered_;
     
     public:
-        Box(int x, int y): Object(x, y){ isDelivered_ = false; }
-        Box(int x, int y, bool isDelivered): Object(x, y){ isDelivered_ = isDelivered;}
+        Box(unsigned int x, unsigned int y): Object(x, y){ isDelivered_ = false; }
+        Box(unsigned int x, unsigned int y, bool isDelivered): Object(x, y){ isDelivered_ = isDelivered;}
 
         /* Getters */
         bool isDelivered() const {return isDelivered_;}

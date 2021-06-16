@@ -24,17 +24,17 @@
 
 class Board {
     private:
-        int nRows_, nCols_;
+        unsigned int nRows_, nCols_;
         std::vector<std::vector<Block>> blocks_;
         std::vector<Box> boxes_;
         Pusher pusher_;
     
     public:
-        Board();
+        Board(){}
         Board(int nRows, int nCols, std::vector<std::vector<Block>>& blocks, std::vector<Box>& boxes);
 
-        int GetRows() const {return nRows_;}
-        int GetColumns() const {return nCols_;}
+        unsigned int GetRows() const {return nRows_;}
+        unsigned int GetColumns() const {return nCols_;}
         std::vector<std::vector<Block>> GetBlocks() const {return blocks_;}
         std::vector<Box> GetBoxes() const {return boxes_;}
 
@@ -42,6 +42,7 @@ class Board {
         void addBox(Box box);
         void addPusher(Pusher pusher);
         void readBoard(std::string filename, char level);
+        void printBoard();
 
 };
 

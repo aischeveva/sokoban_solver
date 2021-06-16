@@ -1,8 +1,13 @@
 #include "Board.hpp"
 
+Board::Board(int nRows, int nCols, std::vector<std::vector<Block>>& blocks, std::vector<Box>& boxes){
+    nRows_ = nRows; nCols_ = nCols;
+    blocks_ = blocks; boxes_ = boxes;
+}
+
 bool Board::addBlock(Block block){
-    int x = block.GetX();
-    int y = block.GetY();
+    unsigned int x = block.GetX();
+    unsigned int y = block.GetY();
     if (blocks_.size() < x + 1){
         std::vector<Block> newRow = {block};
         nRows_++;
@@ -39,12 +44,12 @@ void Board::readBoard(std::string filename, char level){
     std::getline(file, line);
     int x = 0;
     while((line[0] == ' ' || line[0] == '#') && line.length() > 1){
-        for (int i = 0; i < line.length(); i++){
+        for (unsigned int i = 0; i < line.length(); i++){
             switch(line[i]) {
                 case ' ': {
                     if(i==0 || 
                        blocks_[x][i - 1].GetType() == Outer ||
-                       blocks_[x][i - 1].GetType() == Wall) addBlock(Block(x, i, Outer, false)); 
+                       line.find_last_of('#') < i ) addBlock(Block(x, i, Outer, false)); 
                     else addBlock(Block(x, i, Floor, false)); 
                     break;}
                 case '#': addBlock(Block(x, i, Wall, false)); break;
@@ -57,5 +62,13 @@ void Board::readBoard(std::string filename, char level){
         }
         x++;
         std::getline(file, line);
+    }
+}
+
+void Board::printBoard(){
+    for(unsigned int i = 0; i < blocks_.size(); i++){
+        for(unsigned int j = 0; j < blocks_[i].size(); j++){
+            blocks_[i][j].print();
+        }
     }
 }

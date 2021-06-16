@@ -2,6 +2,7 @@
 #define BLOCK_HPP
 
 #include <iostream>
+#include <vector>
 
 /** 
  * \class Block
@@ -31,6 +32,7 @@ class Block {
         int yCoordinate_; ///< y-coordinate of the block
         BlockType type_;  ///< block type
         bool occupied_;   ///< whether the block is occupied by a box or a player or not
+        std::vector<Block> neighbours_; ///< vector of Block neighbours
     
     public:
         /** \fn Block(int xCoord, int yCoord, BlockType type, bool occupied)
@@ -82,6 +84,8 @@ class Block {
         void Free() {occupied_ = false;}
 
         void ChangeType(BlockType type) {type_ = type;}
+
+        void AddNeighbour(Block block) {neighbours_.push_back(block);}
 
         void Print() {std::cout<<"Block of type "<<type_<<" at ("<<xCoordinate_<<","<<yCoordinate_<<"), occupied: "<<occupied_<<std::endl;}
 

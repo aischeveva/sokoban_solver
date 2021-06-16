@@ -42,6 +42,7 @@ class Board {
         bool AddBlock(Block block);
         void AddBox(Box box);
         void AddPusher(Pusher pusher);
+        void AddNeighbours();
         void ReadBoard(std::ifstream& file);
         void ReadBoard(std::string filename);
         void ReadBoard(std::string filename, char level);

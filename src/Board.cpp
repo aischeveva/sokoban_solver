@@ -31,6 +31,19 @@ void Board::AddPusher(Pusher pusher){
     pusher_ = pusher; // add some error management here, if a pusher already exist
 }
 
+void Board::AddNeighbours(){
+    for(unsigned int i = 0; i < nRows_; i++){
+        for(unsigned int j = 0; j < nCols_; j++){
+            if(blocks_[i][j].GetType() != Outer){
+                if(i > 0 && blocks_[i-1][j].GetType() != Outer) blocks_[i][j].AddNeighbour(blocks_[i-1][j]);
+                if(i < (nRows_ - 2) && blocks_[i+1][j].GetType() != Outer) blocks_[i][j].AddNeighbour(blocks_[i+1][j]);
+                if(j > 0 && blocks_[i][j-1].GetType() != Outer) blocks_[i][j].AddNeighbour(blocks_[i][j-1]);
+                if(j < (nCols_ - 2) && blocks_[i][j+1].GetType() != Outer) blocks_[i][j].AddNeighbour(blocks_[i][j+1]);
+            }
+        }
+    }
+}
+
 void Board::ReadBoard(std::ifstream& file){
     std::string line;
     std::getline(file, line);

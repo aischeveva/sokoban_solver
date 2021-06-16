@@ -37,7 +37,7 @@ class Object {
         unsigned int GetX() const {return xCoordinate_;}
         unsigned int GetY() const {return yCoordinate_;}
 
-        void move(Direction dir);
+        void Move(Direction dir);
 };
 
 

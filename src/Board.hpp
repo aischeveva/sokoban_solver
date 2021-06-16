@@ -1,13 +1,14 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
+#include <fstream>
+#include <iostream>
+#include <string>
+#include <vector>
+
 #include "Block.hpp"
 #include "Box.hpp"
 #include "Pusher.hpp"
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <string>
 
 /** 
  * \class Board
@@ -38,11 +39,13 @@ class Board {
         std::vector<std::vector<Block>> GetBlocks() const {return blocks_;}
         std::vector<Box> GetBoxes() const {return boxes_;}
 
-        bool addBlock(Block block);
-        void addBox(Box box);
-        void addPusher(Pusher pusher);
-        void readBoard(std::string filename, char level);
-        void printBoard();
+        bool AddBlock(Block block);
+        void AddBox(Box box);
+        void AddPusher(Pusher pusher);
+        void ReadBoard(std::ifstream& file);
+        void ReadBoard(std::string filename);
+        void ReadBoard(std::string filename, char level);
+        void PrintBoard();
 
 };
 

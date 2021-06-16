@@ -25,11 +25,11 @@ class Box: public Object {
         Box(unsigned int x, unsigned int y, bool isDelivered): Object(x, y){ isDelivered_ = isDelivered;}
 
         /* Getters */
-        bool isDelivered() const {return isDelivered_;}
+        bool IsDelivered() const {return isDelivered_;}
 
         /* Setters */
-        void deliver() {isDelivered_ = true;}
-        void unDeliver() {isDelivered_ = false;}
+        void Deliver() {isDelivered_ = true;}
+        void Undeliver() {isDelivered_ = false;}
 };
 
 #endif

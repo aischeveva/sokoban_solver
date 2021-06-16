@@ -5,7 +5,7 @@ Board::Board(int nRows, int nCols, std::vector<std::vector<Block>>& blocks, std:
     blocks_ = blocks; boxes_ = boxes;
 }
 
-bool Board::addBlock(Block block){
+bool Board::AddBlock(Block block){
     unsigned int x = block.GetX();
     unsigned int y = block.GetY();
     if (blocks_.size() < x + 1){
@@ -23,15 +23,82 @@ bool Board::addBlock(Block block){
     return false;
 }
 
-void Board::addBox(Box box){
+void Board::AddBox(Box box){
     boxes_.push_back(box);
 }
 
-void Board::addPusher(Pusher pusher){
+void Board::AddPusher(Pusher pusher){
     pusher_ = pusher; // add some error management here, if a pusher already exist
 }
 
-void Board::readBoard(std::string filename, char level){
+void Board::ReadBoard(std::ifstream& file){
+    std::string line;
+    std::getline(file, line);
+    int x = 0;
+
+    // read the file
+    while(line.length() > 1){
+        for (unsigned int i = 0; i < line.length(); i++){
+            switch(line[i]) {
+                case ' ': {
+                    if(i==0 || x==0 ||
+                       blocks_[x][i - 1].GetType() == Outer) AddBlock(Block(x, i, Outer, false)); 
+                    else AddBlock(Block(x, i, Floor, false)); 
+                    break;}
+                case '#': AddBlock(Block(x, i, Wall, false)); break;
+                case '@': AddBlock(Block(x, i, Floor, true)); AddPusher(Pusher(x, i)); break;
+                case '+': AddBlock(Block(x, i, Goal, true)); AddPusher(Pusher(x, i)); break;
+                case '$': AddBlock(Block(x, i, Floor, true)); AddBox(Box(x, i)); break;
+                case '*': AddBlock(Block(x, i, Goal, true)); AddBox(Box(x, i, true)); break;
+                case '.': AddBlock(Block(x, i, Goal, false));
+            }
+        }
+        x++;
+        std::getline(file, line);
+    }
+
+    // fill in row by row outer spaces on the right if any
+    for(unsigned int i = 0; i < blocks_.size(); i++){
+        unsigned int j = blocks_[i].size();
+        while (j < nCols_){
+            AddBlock(Block(i, j, Outer, false));
+            j++;
+        }
+    }
+
+    // fix floor tiles into outer space: first top to bottom, then bottom to top
+    // would be nice to come up with a smarter way to do it
+    for(unsigned int i = 1; i < blocks_.size(); i++){
+        for(unsigned int j = 0; j < blocks_[i].size(); j++){
+            if(blocks_[i-1][j].GetType() == Outer && blocks_[i][j].GetType() == Floor){
+                blocks_[i][j].ChangeType(Outer);
+            }
+            if(i == (nRows_ - 1) && blocks_[i][j].GetType() == Floor){
+                blocks_[i][j].ChangeType(Outer);
+            }
+        }
+    }
+    for(int i = nRows_ - 2; i >= 0; i--){
+        for(unsigned int j = 0; j < blocks_[i].size(); j++){
+            if(blocks_[i+1][j].GetType() == Outer && blocks_[i][j].GetType() == Floor){
+                blocks_[i][j].ChangeType(Outer);
+            }
+        }
+    }
+}
+
+void Board::ReadBoard(std::string filename){
+    std::ifstream file;
+    file.open(filename);
+    if(!file) {
+        std::cerr<<"Error: file could not be opened"<<std::endl;
+        std::exit(1);
+    }
+    ReadBoard(file);
+    
+}
+
+void Board::ReadBoard(std::string filename, char level){
     std::ifstream file;
     file.open(filename);
     if(!file) {
@@ -49,15 +116,15 @@ void Board::readBoard(std::string filename, char level){
                 case ' ': {
                     if(i==0 || 
                        blocks_[x][i - 1].GetType() == Outer ||
-                       line.find_last_of('#') < i ) addBlock(Block(x, i, Outer, false)); 
-                    else addBlock(Block(x, i, Floor, false)); 
+                       line.find_last_of('#') < i ) AddBlock(Block(x, i, Outer, false)); 
+                    else AddBlock(Block(x, i, Floor, false)); 
                     break;}
-                case '#': addBlock(Block(x, i, Wall, false)); break;
-                case '@': addBlock(Block(x, i, Floor, true)); addPusher(Pusher(x, i)); break;
-                case '+': addBlock(Block(x, i, Goal, true)); addPusher(Pusher(x, i)); break;
-                case '$': addBlock(Block(x, i, Floor, true)); addBox(Box(x, i)); break;
-                case '*': addBlock(Block(x, i, Goal, true)); addBox(Box(x, i, true)); break;
-                case '.': addBlock(Block(x, i, Goal, false));
+                case '#': AddBlock(Block(x, i, Wall, false)); break;
+                case '@': AddBlock(Block(x, i, Floor, true)); AddPusher(Pusher(x, i)); break;
+                case '+': AddBlock(Block(x, i, Goal, true)); AddPusher(Pusher(x, i)); break;
+                case '$': AddBlock(Block(x, i, Floor, true)); AddBox(Box(x, i)); break;
+                case '*': AddBlock(Block(x, i, Goal, true)); AddBox(Box(x, i, true)); break;
+                case '.': AddBlock(Block(x, i, Goal, false));
             }
         }
         x++;
@@ -65,10 +132,11 @@ void Board::readBoard(std::string filename, char level){
     }
 }
 
-void Board::printBoard(){
+void Board::PrintBoard(){
     for(unsigned int i = 0; i < blocks_.size(); i++){
         for(unsigned int j = 0; j < blocks_[i].size(); j++){
-            blocks_[i][j].print();
+            std::cout<<blocks_[i][j];
         }
+        std::cout<<std::endl;
     }
 }

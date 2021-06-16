@@ -1,6 +1,6 @@
 #include "Object.hpp"
 
-void Object::move(Direction dir){
+void Object::Move(Direction dir){
     switch(dir){
         case North: yCoordinate_++; break;
         case South: yCoordinate_--; break;

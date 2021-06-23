@@ -1,14 +1,11 @@
-#include <stack>
-#include <vector>
-#include <utility>
-
-#include "Block.hpp"
 #include "FeatureSpace.hpp"
 
 void FeatureSpace::ComputeConnectivity(){
     std::stack<std::pair<int, int>> stack;
     std::vector<std::vector<int>> visited(board_.GetRows(), std::vector<int>(board_.GetColumns()));
+    std::vector<std::vector<int>> room(board_.GetRows(), std::vector<int>(board_.GetColumns()));
     std::vector<std::vector<Block>> blocks = board_.GetBlocks();
+    std::vector<Box> boxes = board_.GetBoxes();
     int nRows = board_.GetRows();
     int nCols = board_.GetColumns();
 
@@ -21,6 +18,7 @@ void FeatureSpace::ComputeConnectivity(){
                 while(!stack.empty()){
                     int x = stack.top().first;
                     int y = stack.top().second;
+                    room[x][y] = connectivity_;
                     stack.pop();
                     if(visited[x][y] == 0){
                         visited[x][y] = 1;
@@ -34,6 +32,20 @@ void FeatureSpace::ComputeConnectivity(){
                     }
                 }
             }
+        }
+    }
+    std::cout<<"hoops"<<std::endl;
+    for(auto box = boxes.begin(); box != boxes.end(); box++){
+        int x = (*box).GetX();
+        int y = (*box).GetY();
+        std::vector<int> rooms;
+        if(room[x-1][y] > 0) rooms.push_back(room[x-1][y]);
+        if(room[x+1][y] > 0) rooms.push_back(room[x+1][y]);
+        if(room[x][y-1] > 0) rooms.push_back(room[x][y-1]);
+        if(room[x][y+1] > 0) rooms.push_back(room[x][y+1]);
+
+        if(rooms.size() >= 1 && !std::equal(rooms.begin() + 1, rooms.end(), rooms.begin())){
+            room_connectivity_++;
         }
     }
 

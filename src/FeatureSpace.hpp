@@ -1,6 +1,10 @@
 #ifndef FEATURESPACE_HPP
 #define FEATURESPACE_HPP
 
+#include <stack>
+#include <vector>
+#include <utility>
+
 #include "Board.hpp"
 
 /** 
@@ -21,7 +25,8 @@
 class FeatureSpace{
     private:
         Board board_;
-        int packing_;
+        int packing_number_;
+        std::vector<std::pair<int, Block>> packing_order_;
         int connectivity_;
         int room_connectivity_;
         int out_of_plan_;
@@ -31,7 +36,7 @@ class FeatureSpace{
         FeatureSpace(Board &board): board_(board), connectivity_(0), room_connectivity_(0), out_of_plan_(0) {}
 
         /* getters */
-        int GetPacking() const {return packing_;}
+        int GetPacking() const {return packing_number_;}
         int GetConnectivity() const {return connectivity_;}
         int GetRoomConnectivity() const {return room_connectivity_;}
         int GetOutOfPlan() const {return out_of_plan_;}
@@ -39,7 +44,6 @@ class FeatureSpace{
         /* compute heuristics */
         void ComputePacking();
         void ComputeConnectivity();
-        void ComputeRoomConnectivity();
         void ComputeOutOfPlan();
 
 };

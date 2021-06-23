@@ -33,8 +33,10 @@ class Block {
         BlockType type_;  ///< block type
         bool occupied_;   ///< whether the block is occupied by a box or a player or not
         std::vector<Block> neighbours_; ///< vector of Block neighbours
+        //int neighbour_count_;
     
     public:
+        Block(){};
         /** \fn Block(int xCoord, int yCoord, BlockType type, bool occupied)
          *  \brief Constructor
          *  \param xCoord x-coordinate of the block
@@ -43,7 +45,7 @@ class Block {
          *  \param occupied whether the block is occupied by a box or a player or not
          * 
          */ 
-        Block(int xCoord, int yCoord, BlockType type, bool occupied):xCoordinate_(xCoord), yCoordinate_(yCoord), type_(type), occupied_(occupied){}
+        Block(int xCoord, int yCoord, BlockType type, bool occupied):xCoordinate_(xCoord), yCoordinate_(yCoord), type_(type), occupied_(occupied) /*, neighbours_(4), neighbour_count_(0)*/{}
 
         /* Getters*/
 
@@ -65,6 +67,8 @@ class Block {
          */
         BlockType GetType() const {return type_;}
 
+        std::vector<Block> GetNeighbours() const {return neighbours_;}
+
         /** \fn bool isOccupied() const
          *  \brief Check if the block is currently occupied
          *  \return True, if the block is occupied, false otherwise.
@@ -85,7 +89,7 @@ class Block {
 
         void ChangeType(BlockType type) {type_ = type;}
 
-        void AddNeighbour(Block block) {neighbours_.push_back(block);}
+        void AddNeighbour(Block block) {neighbours_.push_back(block); /*[neighbour_count_] = block; neighbour_count_++;*/}
 
         void Print() {std::cout<<"Block of type "<<type_<<" at ("<<xCoordinate_<<","<<yCoordinate_<<"), occupied: "<<occupied_<<std::endl;}
 

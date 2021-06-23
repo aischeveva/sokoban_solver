@@ -27,7 +27,8 @@ class FeatureSpace{
         int out_of_plan_;
 
     public:
-        FeatureSpace(Board board): board_(board) {}
+        FeatureSpace(){}
+        FeatureSpace(Board &board): board_(board), connectivity_(0), room_connectivity_(0), out_of_plan_(0) {}
 
         /* getters */
         int GetPacking() const {return packing_;}

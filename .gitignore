@@ -1,3 +1,7 @@
 *.o
 output
 *.exe
+*.sok
+levels
+build
+.vscode

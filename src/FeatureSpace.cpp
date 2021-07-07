@@ -34,19 +34,75 @@ void FeatureSpace::ComputeConnectivity(){
             }
         }
     }
-    std::cout<<"hoops"<<std::endl;
+
+    rooms_ = room;
+}
+
+void FeatureSpace::FindSinkRoom(){
+    std::vector<int> candidate_rooms(connectivity_, 0);
+    std::vector<Box> boxes = board_.GetBoxes();
+
+    // find a sink room -- a basin with the most boxes in it at the beginning of the level
     for(auto box = boxes.begin(); box != boxes.end(); box++){
         int x = (*box).GetX();
         int y = (*box).GetY();
-        std::vector<int> rooms;
-        if(room[x-1][y] > 0) rooms.push_back(room[x-1][y]);
-        if(room[x+1][y] > 0) rooms.push_back(room[x+1][y]);
-        if(room[x][y-1] > 0) rooms.push_back(room[x][y-1]);
-        if(room[x][y+1] > 0) rooms.push_back(room[x][y+1]);
-
-        if(rooms.size() >= 1 && !std::equal(rooms.begin() + 1, rooms.end(), rooms.begin())){
-            room_connectivity_++;
-        }
+        std::vector<int> checked_rooms;
+        if(rooms_[x-1][y] > 0) {
+            checked_rooms.push_back(rooms_[x-1][y]);
+            candidate_rooms[rooms_[x-1][y] - 1]++;
+            }
+        if(rooms_[x+1][y] > 0 && 
+        std::find(checked_rooms.begin(), checked_rooms.end(), rooms_[x+1][y]) == checked_rooms.end()) {
+            checked_rooms.push_back(rooms_[x+1][y]);
+            candidate_rooms[rooms_[x+1][y] - 1]++;
+            }
+        if(rooms_[x][y-1] > 0 && 
+        std::find(checked_rooms.begin(), checked_rooms.end(), rooms_[x][y-1]) == checked_rooms.end()) {
+            checked_rooms.push_back(rooms_[x][y-1]);
+            candidate_rooms[rooms_[x][y-1] - 1]++;
+            }
+        if(rooms_[x][y+1] > 0 && 
+        std::find(checked_rooms.begin(), checked_rooms.end(), rooms_[x][y+1]) == checked_rooms.end()) {
+            candidate_rooms[rooms_[x][y+1] - 1]++;
+            }
     }
+    int sink_room = 1 + std::max_element(candidate_rooms.begin(), candidate_rooms.end()) - candidate_rooms.begin();
 
+    //update room numbers for box positions -- initially set to 0
+    for(auto box = boxes.begin(); box != boxes.end(); box++){
+        int x = (*box).GetX();
+        int y = (*box).GetY();
+        std::vector<int> rooms_around(connectivity_, 0);
+        if(rooms_[x-1][y] > 0) {
+            rooms_around[rooms_[x-1][y] - 1] = candidate_rooms[rooms_[x-1][y] - 1];
+            }
+        if(rooms_[x+1][y] > 0) {
+            rooms_around[rooms_[x+1][y] - 1] = candidate_rooms[rooms_[x+1][y] - 1];
+            }
+        if(rooms_[x][y-1] > 0) {
+            rooms_around[rooms_[x][y-1] - 1] = candidate_rooms[rooms_[x][y-1] - 1];
+            }
+        if(rooms_[x][y+1] > 0) {
+            rooms_around[rooms_[x][y+1] - 1] = candidate_rooms[rooms_[x][y+1] - 1];
+            }
+        rooms_[x][y] = 1 + std::max_element(rooms_around.begin(), rooms_around.end()) - rooms_around.begin();
+    }
+    std::cout<<"Our suggested sink room is room number "<<sink_room<<std::endl;
+}
+
+void FeatureSpace::PrintRooms(){
+    for(unsigned int i = 0; i < rooms_.size(); i++){
+        for(unsigned int j = 0; j < rooms_[i].size(); j++){
+            std::cout<<rooms_[i][j];
+        }
+        std::cout<<std::endl;
+    }
+}
+
+void FeatureSpace::ComputePacking(){
+    /// TODO
+}
+
+void FeatureSpace::ComputeOutOfPlan(){
+    /// TODO
 }

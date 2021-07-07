@@ -17,4 +17,6 @@ int main(int argc, char *argv[])
 	testSpace.ComputeConnectivity();
 	std::cout<<"The current number of disconnected rooms is: "<<testSpace.GetConnectivity()<<std::endl;
 	std::cout<<"The current number of boxes blocking tunnels is: "<<testSpace.GetRoomConnectivity()<<std::endl;
+	testSpace.FindSinkRoom();
+	testSpace.PrintRooms();
 }

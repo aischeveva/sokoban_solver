@@ -1,6 +1,7 @@
 #ifndef FEATURESPACE_HPP
 #define FEATURESPACE_HPP
 
+#include <algorithm>
 #include <stack>
 #include <vector>
 #include <utility>
@@ -25,6 +26,7 @@
 class FeatureSpace{
     private:
         Board board_;
+        std::vector<std::vector<int>> rooms_;
         int packing_number_;
         std::vector<std::pair<int, Block>> packing_order_;
         int connectivity_;
@@ -45,6 +47,10 @@ class FeatureSpace{
         void ComputePacking();
         void ComputeConnectivity();
         void ComputeOutOfPlan();
+
+        /* preparational functions */
+        void FindSinkRoom();
+        void PrintRooms();
 
 };
 

@@ -1,0 +1,12 @@
+DONE:
+* connectiviry feature computes ok
+
+TODO:
+1. Leave out Room Connectivity for now, concentrate on Packing order and Out of Plan
+2. Packing Order feature
+	* how to represent?
+	* use backward search -- how far to pull boxes?
+	* fess in there?
+3. Out of Plan feature
+4. Advisors
+5. solving routine itself

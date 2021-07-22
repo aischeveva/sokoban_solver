@@ -1,6 +1,6 @@
-#include "FeatureSpace.hpp"
+#include "FeatureSpaceCell.hpp"
 
-void FeatureSpace::ComputeConnectivity(){
+void FeatureSpaceCell::ComputeConnectivity(){
     std::stack<std::pair<int, int>> stack;
     std::vector<std::vector<int>> visited(board_.GetRows(), std::vector<int>(board_.GetColumns()));
     std::vector<std::vector<int>> room(board_.GetRows(), std::vector<int>(board_.GetColumns()));
@@ -38,7 +38,7 @@ void FeatureSpace::ComputeConnectivity(){
     rooms_ = room;
 }
 
-void FeatureSpace::FindSinkRoom(){
+void FeatureSpaceCell::FindSinkRoom(){
     std::vector<int> candidate_rooms(connectivity_, 0);
     std::vector<Box> boxes = board_.GetBoxes();
 
@@ -90,7 +90,7 @@ void FeatureSpace::FindSinkRoom(){
     std::cout<<"Our suggested sink room is room number "<<sink_room<<std::endl;
 }
 
-void FeatureSpace::PrintRooms(){
+void FeatureSpaceCell::PrintRooms(){
     for(unsigned int i = 0; i < rooms_.size(); i++){
         for(unsigned int j = 0; j < rooms_[i].size(); j++){
             std::cout<<rooms_[i][j];
@@ -99,10 +99,10 @@ void FeatureSpace::PrintRooms(){
     }
 }
 
-void FeatureSpace::ComputePacking(){
+void FeatureSpaceCell::ComputePacking(){
     /// TODO
 }
 
-void FeatureSpace::ComputeOutOfPlan(){
+void FeatureSpaceCell::ComputeOutOfPlan(){
     /// TODO
 }

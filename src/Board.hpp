@@ -38,6 +38,7 @@ class Board {
         unsigned int GetColumns() const {return nCols_;}
         std::vector<std::vector<Block>> GetBlocks() const {return blocks_;}
         std::vector<Box> GetBoxes() const {return boxes_;}
+        std::vector<Block> GetGoals();
 
         bool AddBlock(Block block);
         void AddBox(Box box);

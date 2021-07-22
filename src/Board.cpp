@@ -5,6 +5,16 @@ Board::Board(int nRows, int nCols, std::vector<std::vector<Block>>& blocks, std:
     blocks_ = blocks; boxes_ = boxes;
 }
 
+std::vector<Block> Board::GetGoals(){
+    std::vector<Block> targets;
+    for(int i = 0; i < nRows_; i++){
+        for(int j = 0; j < nCols_; j++){
+            if (blocks_[i][j].GetType() == Goal) targets.push_back(blocks_[i][j]);
+        }
+    }
+    return targets;
+}
+
 bool Board::AddBlock(Block block){
     unsigned int x = block.GetX();
     unsigned int y = block.GetY();

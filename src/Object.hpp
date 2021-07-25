@@ -38,6 +38,9 @@ class Object {
         unsigned int GetY() const {return yCoordinate_;}
 
         void Move(Direction dir);
+
+        bool operator< (const Object& right) const { return xCoordinate_ < right.GetX();}
+        friend bool operator==(const Object& o1, const Object& o2);
 };
 
 

@@ -6,7 +6,8 @@
 #include <vector>
 #include <utility>
 
-#include "Board.hpp"
+#include "BoardState.hpp"
+#include "PackingPlanFeatureSpaceCell.hpp"
 
 /** 
  * \class FeatureSpaceCell
@@ -24,7 +25,7 @@
  */ 
 
 /*TODO:
-    * change board to a vector of projected domain states
+    * change boardState to a vector of projected domain states
     * packing plan: keep the order of the targets (i.e., which targets should be filled in first)
     *               packing advisor prioritizes moves that pack a box on a target that is first on the packing order list
     *               once box is packed there, the target is removed from the list to make way for the next top priority target
@@ -41,8 +42,9 @@
 */
 class FeatureSpaceCell{
     private:
-        Board board_;
+        BoardState board_;
         std::vector<std::vector<int>> rooms_;
+        int sink_room_;
         int packing_number_;
         std::vector<std::pair<int, Block>> packing_order_;
         int connectivity_;
@@ -51,7 +53,7 @@ class FeatureSpaceCell{
 
     public:
         FeatureSpaceCell(){}
-        FeatureSpaceCell(Board &board): board_(board), connectivity_(0), room_connectivity_(0), out_of_plan_(0) {}
+        FeatureSpaceCell(BoardState &boardState): board_(boardState), connectivity_(0), room_connectivity_(0), out_of_plan_(0) {}
 
         /* getters */
         int GetPacking() const {return packing_number_;}

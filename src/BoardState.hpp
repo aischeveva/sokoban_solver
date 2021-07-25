@@ -1,8 +1,9 @@
-#ifndef BOARD_HPP
-#define BOARD_HPP
+#ifndef BOARDSTATE_HPP
+#define BOARDSTATE_HPP
 
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -11,7 +12,7 @@
 #include "Pusher.hpp"
 
 /** 
- * \class Board
+ * \class BoardState
  * \brief Level map layout.
  * This class manages level map layout, including blocks and available boxes.
  * 
@@ -23,16 +24,18 @@
  *
  */ 
 
-class Board {
+class BoardState {
     private:
         unsigned int nRows_, nCols_;
         std::vector<std::vector<Block>> blocks_;
         std::vector<Box> boxes_;
         Pusher pusher_;
+        BoardState* previous_board_;
     
     public:
-        Board(){}
-        Board(int nRows, int nCols, std::vector<std::vector<Block>>& blocks, std::vector<Box>& boxes);
+        BoardState(){}
+        BoardState(const std::vector<std::vector<Block>>& blocks, const std::vector<Box>& boxes);
+        BoardState(const std::vector<std::vector<Block>>& blocks, const std::vector<Box>& boxes, BoardState* previous);
 
         unsigned int GetRows() const {return nRows_;}
         unsigned int GetColumns() const {return nCols_;}
@@ -44,10 +47,13 @@ class Board {
         void AddBox(Box box);
         void AddPusher(Pusher pusher);
         void AddNeighbours();
-        void ReadBoard(std::ifstream& file);
-        void ReadBoard(std::string filename);
-        void ReadBoard(std::string filename, char level);
-        void PrintBoard();
+        void ReadBoardState(std::ifstream& file);
+        void ReadBoardState(std::string filename);
+        void ReadBoardState(std::string filename, char level);
+        void PrintBoardState();
+
+        bool operator< (const BoardState& right) const { return boxes_.size() < right.GetBoxes().size();}
+        friend bool operator== (const BoardState& b1, const BoardState& b2);
 
 };
 

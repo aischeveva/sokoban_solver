@@ -30,6 +30,7 @@ class Box: public Object {
         /* Setters */
         void Deliver() {isDelivered_ = true;}
         void Undeliver() {isDelivered_ = false;}
+
 };
 
 #endif

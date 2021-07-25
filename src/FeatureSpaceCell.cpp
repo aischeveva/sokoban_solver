@@ -88,6 +88,7 @@ void FeatureSpaceCell::FindSinkRoom(){
         rooms_[x][y] = 1 + std::max_element(rooms_around.begin(), rooms_around.end()) - rooms_around.begin();
     }
     std::cout<<"Our suggested sink room is room number "<<sink_room<<std::endl;
+    sink_room_ = sink_room;
 }
 
 void FeatureSpaceCell::PrintRooms(){
@@ -100,6 +101,100 @@ void FeatureSpaceCell::PrintRooms(){
 }
 
 void FeatureSpaceCell::ComputePacking(){
+    //set up initial position, all boxes on targets
+    std::vector<Block> goals = board_.GetGoals();
+    std::vector<Box> boxes_on_goals;
+    for (auto goal : goals){
+        boxes_on_goals.push_back(Box(goal.GetX(), goal.GetY(), true));
+    }
+    BoardState initial_board = BoardState(board_.GetBlocks(), boxes_on_goals);
+    //set up list of feature cells in feature space
+    std::vector<PackingPlanFeatureSpaceCell> feature_space;
+    //compute initial feature space cell and add it to the list
+    PackingPlanFeatureSpaceCell initial_cell = PackingPlanFeatureSpaceCell(initial_board);
+    feature_space.push_back(initial_cell);
+
+    BoardState current_state = initial_board;
+    PackingPlanFeatureSpaceCell current_cell = initial_cell;
+    std::vector<Box> boxes_on_board = boxes_on_goals;
+
+    //search feature space while all the boxes are not deleted
+    while(current_cell.GetBoxesOnBoard() != 0){
+        //locally explored moves
+        std::set<BoardState> explored_moves;
+        //find all possible moves from the current state
+        std::vector<std::pair<BoardState, PackingPlanFeatureSpaceCell>> possible_moves;
+        //look at moving one box at a time
+        for(unsigned int i = 0; i < boxes_on_board.size(); i++){
+            // moves available for i_th box only
+            std::stack<BoardState> available_moves;
+            available_moves.push(current_state);
+            while(!available_moves.empty()){
+                current_state = available_moves.top();
+                available_moves.pop();
+                //if the move hasn't been explored yet
+                if(std::find(explored_moves.begin(), explored_moves.end(), current_state) == explored_moves.end()){
+                    // mark move as checked
+                    explored_moves.insert(current_state);
+                    
+                    int x = current_state.GetBoxes()[i].GetX();
+                    int y = current_state.GetBoxes()[i].GetY();
+                    // if a box reached a sink room, remove it from the board and stop exploration for this box
+                    if(rooms_[x][y] == sink_room_){
+                        std::vector<Box> new_boxes = current_state.GetBoxes();
+                        std::vector<std::vector<Block>> new_blocks = current_state.GetBlocks();
+                        new_boxes.erase(new_boxes.begin() + i);
+                        new_blocks[x][y].Free();
+                        current_state = BoardState(new_blocks, new_boxes, &current_state);
+                        while(!available_moves.empty()) available_moves.pop();
+                    } else {
+                        //otherwise check if there is enough space to pull the box in each four directions
+                        std::vector<std::vector<Block>> blocks = current_state.GetBlocks();
+                        std::vector<Box> new_boxes;
+                        std::vector<std::vector<Block>> new_blocks;
+                        //check North
+                        if(!blocks[x-1][y].IsOccupied() && !blocks[x-2][y].IsOccupied()){
+                            new_boxes = current_state.GetBoxes();
+                            new_blocks = blocks;
+                            new_blocks[x][y].Free();
+                            new_blocks[x-1][y].Occupy();
+                            new_boxes[i].Move(North);
+                            available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
+                        }
+                        //check South
+                        if(!blocks[x+1][y].IsOccupied() && !blocks[x+2][y].IsOccupied()){
+                            new_boxes = current_state.GetBoxes();
+                            new_blocks = blocks;
+                            new_blocks[x][y].Free();
+                            new_blocks[x+1][y].Occupy();
+                            new_boxes[i].Move(South);
+                            available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
+                        }
+                        //check East
+                        if(!blocks[x][y+1].IsOccupied() && !blocks[x][y+2].IsOccupied()){
+                            new_boxes = current_state.GetBoxes();
+                            new_blocks = blocks;
+                            new_blocks[x][y].Free();
+                            new_blocks[x][y+1].Occupy();
+                            new_boxes[i].Move(East);
+                            available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
+                        }
+                        //check West
+                        if(!blocks[x][y-1].IsOccupied() && !blocks[x][y-2].IsOccupied()){
+                            new_boxes = current_state.GetBoxes();
+                            new_blocks = blocks;
+                            new_blocks[x][y].Free();
+                            new_blocks[x][y-1].Occupy();
+                            new_boxes[i].Move(West);
+                            available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
+                        }
+                    }
+                    // add move to all possible moves
+                    possible_moves.push_back(std::make_pair(current_state, PackingPlanFeatureSpaceCell(current_state)));
+                }
+            }
+        }
+    }
     /// TODO
 }
 

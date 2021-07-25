@@ -1,11 +1,22 @@
-#include "Board.hpp"
+#include "BoardState.hpp"
 
-Board::Board(int nRows, int nCols, std::vector<std::vector<Block>>& blocks, std::vector<Box>& boxes){
-    nRows_ = nRows; nCols_ = nCols;
-    blocks_ = blocks; boxes_ = boxes;
+BoardState::BoardState(const std::vector<std::vector<Block>>& blocks, const std::vector<Box>& boxes){
+    nRows_ = blocks_.size();
+    nCols_ = blocks_[0].size();
+    blocks_ = blocks;
+    boxes_ = boxes;
+    previous_board_ = NULL;
 }
 
-std::vector<Block> Board::GetGoals(){
+
+BoardState::BoardState(const std::vector<std::vector<Block>>& blocks, const std::vector<Box>& boxes, BoardState* previous){
+    nRows_ = blocks_.size();
+    nCols_ = blocks_[0].size();
+    blocks_ = blocks; boxes_ = boxes;
+    previous_board_ = previous;
+}
+
+std::vector<Block> BoardState::GetGoals(){
     std::vector<Block> targets;
     for(int i = 0; i < nRows_; i++){
         for(int j = 0; j < nCols_; j++){
@@ -15,7 +26,7 @@ std::vector<Block> Board::GetGoals(){
     return targets;
 }
 
-bool Board::AddBlock(Block block){
+bool BoardState::AddBlock(Block block){
     unsigned int x = block.GetX();
     unsigned int y = block.GetY();
     if (blocks_.size() < x + 1){
@@ -33,15 +44,15 @@ bool Board::AddBlock(Block block){
     return false;
 }
 
-void Board::AddBox(Box box){
+void BoardState::AddBox(Box box){
     boxes_.push_back(box);
 }
 
-void Board::AddPusher(Pusher pusher){
+void BoardState::AddPusher(Pusher pusher){
     pusher_ = pusher; // add some error management here, if a pusher already exist
 }
 
-void Board::AddNeighbours(){
+void BoardState::AddNeighbours(){
     for(unsigned int i = 0; i < nRows_; i++){
         for(unsigned int j = 0; j < nCols_; j++){
             //std::cout<<"Processing block "<<i<<" "<<j<<std::endl;
@@ -56,7 +67,7 @@ void Board::AddNeighbours(){
     }
 }
 
-void Board::ReadBoard(std::ifstream& file){
+void BoardState::ReadBoardState(std::ifstream& file){
     std::string line;
     std::getline(file, line);
     int x = 0;
@@ -70,7 +81,7 @@ void Board::ReadBoard(std::ifstream& file){
                        blocks_[x][i - 1].GetType() == Outer) AddBlock(Block(x, i, Outer, false)); 
                     else AddBlock(Block(x, i, Floor, false)); 
                     break;}
-                case '#': AddBlock(Block(x, i, Wall, false)); break;
+                case '#': AddBlock(Block(x, i, Wall, true)); break;
                 case '@': AddBlock(Block(x, i, Floor, true)); AddPusher(Pusher(x, i)); break;
                 case '+': AddBlock(Block(x, i, Goal, true)); AddPusher(Pusher(x, i)); break;
                 case '$': AddBlock(Block(x, i, Floor, true)); AddBox(Box(x, i)); break;
@@ -112,18 +123,18 @@ void Board::ReadBoard(std::ifstream& file){
     }
 }
 
-void Board::ReadBoard(std::string filename){
+void BoardState::ReadBoardState(std::string filename){
     std::ifstream file;
     file.open(filename);
     if(!file) {
         std::cerr<<"Error: file could not be opened"<<std::endl;
         std::exit(1);
     }
-    ReadBoard(file);
+    ReadBoardState(file);
     
 }
 
-void Board::ReadBoard(std::string filename, char level){
+void BoardState::ReadBoardState(std::string filename, char level){
     std::ifstream file;
     file.open(filename);
     if(!file) {
@@ -157,11 +168,25 @@ void Board::ReadBoard(std::string filename, char level){
     }
 }
 
-void Board::PrintBoard(){
+void BoardState::PrintBoardState(){
     for(unsigned int i = 0; i < blocks_.size(); i++){
         for(unsigned int j = 0; j < blocks_[i].size(); j++){
             std::cout<<blocks_[i][j];
         }
         std::cout<<std::endl;
     }
+}
+
+//have to add that pushers have to see each other
+bool operator== (const BoardState& b1, const BoardState& b2){
+    if (b1.GetBoxes().size() != b2.GetBoxes().size()) return false;
+    std::set<Box> b1_boxes;
+    std::set<Box> b2_boxes;
+    std::vector<Box> b1b = b1.GetBoxes();
+    std::vector<Box> b2b = b2.GetBoxes();
+    for(unsigned int i = 0; i < b1b.size(); i++){
+        b1_boxes.insert(b1b[i]);
+        b2_boxes.insert(b2b[i]);
+    }
+    return b1_boxes == b2_boxes;
 }

@@ -1,5 +1,6 @@
 #include <chrono>
 #include <iostream>
+#include <string>
 
 #include "BoardState.hpp"
 #include "FeatureSpaceCell.hpp"
@@ -8,7 +9,16 @@ int main(int argc, char *argv[])
 {
 	BoardState testBoard = BoardState();
 	std::cout<<"Loading file. "<<std::endl;
-	testBoard.ReadBoardState("C:\\aalto\\sokoban_solver\\src\\levels\\xsokoban\\screen.15");
+
+	std::string filename = "../src/levels/xsokoban/screen.1";
+	
+	//takes filename as the first argument
+	//if none were passed, tries to load the first level located at "./src/levels/xsokoban/screen.1"
+	if(argc>1){
+		filename = argv[1];
+	}
+	
+	testBoard.ReadBoardState(filename);
 	std::cout<<"Printing Board: "<<std::endl;
 	testBoard.PrintBoardState();
 	std::cout<<"Total number of rows: "<<testBoard.GetRows()<<", total number of columns: "<<testBoard.GetColumns()<<std::endl;

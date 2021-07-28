@@ -1,6 +1,7 @@
 #ifndef PACKINGPLANFEATURESPACECELL_HPP
 #define PACKINGPLANFEATURESPACECELL_HPP
 
+#include <climits>
 #include <cmath>
 #include <vector>
 

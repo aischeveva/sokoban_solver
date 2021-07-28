@@ -1,10 +1,10 @@
 #include "BoardState.hpp"
 
-BoardState::BoardState(const std::vector<std::vector<Block>>& blocks, const std::vector<Box>& boxes){
+BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes){
+    blocks_ = std::move(blocks);
+    boxes_ = std::move(boxes);
     nRows_ = blocks_.size();
     nCols_ = blocks_[0].size();
-    blocks_ = blocks;
-    boxes_ = boxes;
     previous_board_ = NULL;
 }
 
@@ -71,7 +71,7 @@ void BoardState::ReadBoardState(std::ifstream& file){
     std::string line;
     std::getline(file, line);
     int x = 0;
-
+    nRows_ = 0; nCols_ = 0;
     // read the file
     while(line.length() > 1){
         for (unsigned int i = 0; i < line.length(); i++){

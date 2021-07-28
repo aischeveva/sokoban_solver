@@ -7,7 +7,7 @@ PackingPlanFeatureSpaceCell::PackingPlanFeatureSpaceCell(BoardState &board){
     UpdateDistance();
 }
 
-void PackingPlanFeatureSpaceCell::AddBoard(BoardState &board){
+void PackingPlanFeatureSpaceCell::AddBoard(const BoardState &board){
     corresponding_boards_.push_back(board);
 }
 
@@ -22,6 +22,7 @@ void PackingPlanFeatureSpaceCell::UpdateBoxesOnTarget(){
 }
 
 void PackingPlanFeatureSpaceCell::UpdateDistance(){
+    distance_to_targets_ = 0;
     std::vector<Block> targets = corresponding_boards_[0].GetGoals();
     for(auto box : corresponding_boards_[0].GetBoxes()){
         int min_distance = INT_MAX;

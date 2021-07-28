@@ -35,7 +35,7 @@ class BoardState {
     public:
         BoardState(){}
         BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes);
-        BoardState(const std::vector<std::vector<Block>>& blocks, const std::vector<Box>& boxes, BoardState* previous);
+        BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous);
 
         unsigned int GetRows() const {return nRows_;}
         unsigned int GetColumns() const {return nCols_;}

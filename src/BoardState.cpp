@@ -9,10 +9,11 @@ BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> 
 }
 
 
-BoardState::BoardState(const std::vector<std::vector<Block>>& blocks, const std::vector<Box>& boxes, BoardState* previous){
+BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous){
+    blocks_ = std::move(blocks);
+    boxes_ = std::move(boxes);
     nRows_ = blocks_.size();
     nCols_ = blocks_[0].size();
-    blocks_ = blocks; boxes_ = boxes;
     previous_board_ = previous;
 }
 

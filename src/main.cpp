@@ -6,7 +6,6 @@
 #include <utility>
 
 #include "BoardState.hpp"
-
 #include "FeatureSpaceCell.hpp"
 
 int main(int argc, char *argv[])
@@ -85,4 +84,17 @@ int main(int argc, char *argv[])
         std::cout << current.GetBoxesOnBoard() << " " << current.GetBoxesOnTarget()<<" "<<current.GetDistance()<<std::endl;
         q3.pop();
     }
+
+	std::cout<<"Test map with board states:"<<std::endl;
+	//do I have to write my own compare function, equality is not enough?
+	std::map<BoardState, int> move_tree;
+	move_tree[testBoard] = 0;
+	move_tree[moved] = 1;
+	move_tree[moved1] = 2;
+	//move_tree[moved2] = 3;
+
+	std::cout<<(testBoard==moved2)<<std::endl;
+	std::cout<<"Random value for testBoard "<<move_tree[testBoard]<<std::endl;
+	std::cout<<"Random value for moved "<<move_tree[moved]<<std::endl;
+	std::cout<<"Random value for moved1 "<<move_tree[moved1]<<std::endl;
 }

@@ -115,17 +115,34 @@ void FeatureSpaceCell::ComputePacking(){
     PackingPlanFeatureSpaceCell initial_cell = PackingPlanFeatureSpaceCell(initial_board);
     feature_space.push_back(initial_cell);
 
+    // set up the move "tree" -- a map (state -> weight) should be sufficient probably
+    // push back the initial domain state
+    std::map<BoardState, int> move_tree;
+    move_tree[initial_board] = 0;
+
     BoardState current_state = initial_board;
     PackingPlanFeatureSpaceCell current_cell = initial_cell;
     std::vector<Box> boxes_on_board = boxes_on_goals;
 
+    //custom compare function to keep track of best moves
+	auto cmp = [](std::pair<BoardState, PackingPlanFeatureSpaceCell> left, std::pair<BoardState, PackingPlanFeatureSpaceCell> right) { 
+		if(left.second.GetBoxesOnBoard() < right.second.GetBoxesOnBoard()) return false; 
+		else if(left.second.GetBoxesOnTarget() < right.second.GetBoxesOnTarget()) return false;
+		else if(left.second.GetDistance() > right.second.GetDistance()) return false;
+		return true;
+
+	 };
+
     //search feature space while all the boxes are not deleted
     //or the maximum number of iterations is not reached (NOT ADDED YET)
     while(current_cell.GetBoxesOnBoard() != 0){
+        // TODO: have to add cycling through all states that correspond to the feature cell :(((
+        // for the initial state it's just one, but it get worse pretty fast oh well
+
         //locally explored moves
         std::set<BoardState> explored_moves;
         //find all possible moves from the current state
-        std::vector<std::pair<BoardState, PackingPlanFeatureSpaceCell>> possible_moves;
+        std::priority_queue<std::pair<BoardState, PackingPlanFeatureSpaceCell>, std::vector<std::pair<BoardState, PackingPlanFeatureSpaceCell>>, decltype(cmp)> possible_moves(cmp);
         //look at moving one box at a time
         //TODO: check that local current state and current state are used correctly
         for(unsigned int i = 0; i < boxes_on_board.size(); i++){
@@ -154,11 +171,11 @@ void FeatureSpaceCell::ComputePacking(){
                         new_blocks[x][y].Free();
                         current_local_state = BoardState(new_blocks, new_boxes, &current_state);
                         // add it to the possible moves
-                        possible_moves.push_back(std::make_pair(current_local_state, PackingPlanFeatureSpaceCell(current_local_state)));
+                        possible_moves.push(std::make_pair(current_local_state, PackingPlanFeatureSpaceCell(current_local_state)));
                         while(!available_moves.empty()) available_moves.pop();
                     } else {
                         // add current move to moves possible from the current state
-                        possible_moves.push_back(std::make_pair(current_local_state, PackingPlanFeatureSpaceCell(current_local_state)));
+                        possible_moves.push(std::make_pair(current_local_state, PackingPlanFeatureSpaceCell(current_local_state)));
                         //otherwise check if there is enough space to pull the box in each four directions
                         std::vector<std::vector<Block>> blocks = current_local_state.GetBlocks();
                         std::vector<Box> new_boxes;
@@ -208,23 +225,28 @@ void FeatureSpaceCell::ComputePacking(){
         //1) if the box can be removed, pick this move. If more than one box can be removed, pick the one with higher distance
         //2) otherwise if a box can be moved from target, move it. Same as before, with several moves pick the one with higher distance
         //3) if 1) and 2) are not possible, just try to maximize the distance.
-        BoardState best_move = current_state;
-        PackingPlanFeatureSpaceCell best_cell = current_cell;
-        for(auto state : possible_moves){
-            if(state.second.GetBoxesOnBoard() <= best_cell.GetBoxesOnBoard()){
-                if(state.second.GetDistance() > best_cell.GetDistance()){
-                    //update best move and corresponding cell
-                    best_move = state.first;
-                    best_cell = state.second;
-                }
-            } else if(state.second.GetBoxesOnTarget() <= best_cell.GetBoxesOnTarget()){
-                if(state.second.GetDistance() > best_cell.GetDistance()){
-                    //update best move and corresponding cell
-                    best_move = state.first;
-                    best_cell = state.second;
-                }
-            }
+        // if the queue was defined correctly (hopefully) the best move is the first one in the queue of possible moves
+        BoardState best_move = possible_moves.top().first;
+        PackingPlanFeatureSpaceCell best_cell = possible_moves.top().second;
+
+        //add a move to the tree
+        //TODO: have to determine somehow if the move was picked by advisor or not
+        move_tree[best_move] = move_tree[current_state] + 1;
+        //check if the cell in feature space was already discovered:
+        //if yes, add the move to the list of the domain states that project on this cell
+        //if no, add new feature cell to the feature space
+        auto it = std::find(feature_space.begin(), feature_space.end(), best_cell);
+        PackingPlanFeatureSpaceCell cell = (*it);
+        if(it != feature_space.end()){
+            it->AddBoard(best_move);
+        } else {
+            feature_space.push_back(best_cell);
         }
+
+        //pick a new cell
+        //pick an unexplored move that projects onto that cell
+
+        //add weights to the moves somehow
     }
     /// TODO
 }

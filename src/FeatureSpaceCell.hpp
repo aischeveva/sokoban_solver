@@ -2,6 +2,9 @@
 #define FEATURESPACECELL_HPP
 
 #include <algorithm>
+#include <functional>
+#include <map>
+#include <queue>
 #include <stack>
 #include <vector>
 #include <utility>
@@ -37,6 +40,7 @@
     *                               once you found solution, rebuild the path by parent links
     *                          after that pick a feature cell from the active cells
     *                          and expand all unexpanded moves that correspond to this cell -- repeat with finding the best move 
+    *                          that actually means to find all moves (that are not in the tree yet) from the corresponding states
     * about macro moves: pick a box, and treat it as an only moving object as long as you can move it
     *                    that would create a macro move basically
 */

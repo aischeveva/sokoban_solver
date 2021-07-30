@@ -46,11 +46,11 @@
 */
 class FeatureSpaceCell{
     private:
-        BoardState board_;
+        BoardState board_; //change it to vector of boards
         std::vector<std::vector<int>> rooms_;
         int sink_room_;
         int packing_number_;
-        std::vector<std::pair<int, Block>> packing_order_;
+        std::vector<Block> packing_order_;
         int connectivity_;
         int room_connectivity_;
         int out_of_plan_;
@@ -66,7 +66,8 @@ class FeatureSpaceCell{
         int GetOutOfPlan() const {return out_of_plan_;}
 
         /* compute heuristics */
-        void ComputePacking();
+        void ComputePackingNumber();
+        void ComputePackingOrder();
         void ComputeConnectivity();
         void ComputeOutOfPlan();
 

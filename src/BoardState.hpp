@@ -31,17 +31,20 @@ class BoardState {
         std::vector<Box> boxes_;
         Pusher pusher_;
         BoardState* previous_board_;
+        int weight_; //the weight of the move determined by the weight of the parent + 1 if it was picked by advisor or 100 otherwise
     
     public:
         BoardState(){}
         BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes);
-        BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous);
+        BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous, bool picked = false);
 
         unsigned int GetRows() const {return nRows_;}
         unsigned int GetColumns() const {return nCols_;}
+        int GetWeight() const {return weight_;}
         std::vector<std::vector<Block>> GetBlocks() const {return blocks_;}
         std::vector<Box> GetBoxes() const {return boxes_;}
         std::vector<Block> GetGoals();
+        BoardState GetPreviousState() const {return *previous_board_;}
 
         bool AddBlock(Block block);
         void AddBox(Box box);

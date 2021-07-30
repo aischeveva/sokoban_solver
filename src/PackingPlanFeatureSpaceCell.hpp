@@ -23,6 +23,7 @@ public:
     int GetBoxesOnBoard() const {return boxes_on_board_;}
     int GetBoxesOnTarget() const {return boxes_on_target_;}
     int GetDistance() const {return distance_to_targets_;}
+    std::vector<BoardState> GetStates() const {return corresponding_boards_;}
 
     void AddBoard(BoardState board);
     void UpdateBoxesOnBoard();

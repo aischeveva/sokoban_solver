@@ -105,6 +105,10 @@ class Block {
 
             return os;
         }
+        friend bool operator==(const Block& b1, const Block& b2){
+            if(b1.GetX() == b2.GetX() && b1.GetY() == b2.GetY()) return true;
+            else return false;
+        }
 };
 
 #endif

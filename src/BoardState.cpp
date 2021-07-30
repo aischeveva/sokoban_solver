@@ -6,15 +6,18 @@ BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> 
     nRows_ = blocks_.size();
     nCols_ = blocks_[0].size();
     previous_board_ = NULL;
+    weight_ = 0;
 }
 
-
-BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous){
+//by default the state is not picked by the advisor unless stated otherwise
+BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous, bool picked /*=false*/){
     blocks_ = std::move(blocks);
     boxes_ = std::move(boxes);
     nRows_ = blocks_.size();
     nCols_ = blocks_[0].size();
     previous_board_ = previous;
+    if (picked) weight_ = previous_board_->GetWeight() + 1;
+    else weight_ = previous_board_->GetWeight() + 100;
 }
 
 std::vector<Block> BoardState::GetGoals(){

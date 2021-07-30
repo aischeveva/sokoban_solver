@@ -92,9 +92,15 @@ int main(int argc, char *argv[])
 	move_tree[moved] = 1;
 	move_tree[moved1] = 2;
 	//move_tree[moved2] = 3;
+	std::vector<BoardState> test_vector;
+	test_vector.push_back(moved);
+	test_vector.push_back(testBoard);
+	
+	test_vector.push_back(moved1);
+	test_vector.push_back(moved2);
 
-	std::cout<<(testBoard==moved2)<<std::endl;
-	std::cout<<"Random value for testBoard "<<move_tree[testBoard]<<std::endl;
+	auto it = std::find(test_vector.begin(), test_vector.end(), testBoard);
+	std::cout<<"Index found: "<<(it - test_vector.begin())<<std::endl;
 	std::cout<<"Random value for moved "<<move_tree[moved]<<std::endl;
 	std::cout<<"Random value for moved1 "<<move_tree[moved1]<<std::endl;
 }

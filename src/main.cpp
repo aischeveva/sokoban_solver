@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
 	testSpace.FindSinkRoom();
 	testSpace.PrintRooms();
 
+	testSpace.ComputePackingOrder();
 	std::cout<<"Testing priority queues:"<<std::endl;
 	//custom compare function
 	auto cmp = [](std::pair<BoardState, PackingPlanFeatureSpaceCell> left, std::pair<BoardState, PackingPlanFeatureSpaceCell> right) { 

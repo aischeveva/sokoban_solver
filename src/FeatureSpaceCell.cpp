@@ -136,7 +136,6 @@ void FeatureSpaceCell::ComputePackingOrder(){
 
     std::vector<BoardState> current_states; // vector to hold all states corresponding to current cell in feature space
     PackingPlanFeatureSpaceCell current_cell = initial_cell;
-    std::vector<Box> boxes_on_board = boxes_on_goals;
 
     //custom compare function to keep track of best moves:
     //1) weight
@@ -166,7 +165,8 @@ void FeatureSpaceCell::ComputePackingOrder(){
         //TODO: check that local current state and current state are used correctly
         for(auto current_state : current_states){
             //look at moving one box at a time
-            for(unsigned int i = 0; i < boxes_on_board.size(); i++){
+            unsigned int number_of_boxes = current_state.GetBoxes().size();
+            for(unsigned int i = 0; i < number_of_boxes; i++){
                 // moves available for i_th box only
                 // tries to find all available macro moves for this box
 

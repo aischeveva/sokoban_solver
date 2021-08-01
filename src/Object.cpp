@@ -2,8 +2,8 @@
 
 void Object::Move(Direction dir){
     switch(dir){
-        case North: xCoordinate_++; break;
-        case South: xCoordinate_--; break;
+        case North: xCoordinate_--; break;
+        case South: xCoordinate_++; break;
         case East: yCoordinate_++; break;
         case West: yCoordinate_--; break;
     }

@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 	testSpace.ComputePackingOrder();
 	std::cout<<"Testing priority queues:"<<std::endl;
 	//custom compare function
-	auto cmp = [](std::pair<BoardState, PackingPlanFeatureSpaceCell> left, std::pair<BoardState, PackingPlanFeatureSpaceCell> right) { 
+	/*auto cmp = [](std::pair<BoardState, PackingPlanFeatureSpaceCell> left, std::pair<BoardState, PackingPlanFeatureSpaceCell> right) { 
 		if(left.second.GetBoxesOnBoard() < right.second.GetBoxesOnBoard()) return false; 
 		else if(left.second.GetBoxesOnTarget() < right.second.GetBoxesOnTarget()) return false;
 		else if(left.second.GetDistance() > right.second.GetDistance()) return false;
@@ -103,5 +103,5 @@ int main(int argc, char *argv[])
 	auto it = std::find(test_vector.begin(), test_vector.end(), testBoard);
 	std::cout<<"Index found: "<<(it - test_vector.begin())<<std::endl;
 	std::cout<<"Random value for moved "<<move_tree[moved]<<std::endl;
-	std::cout<<"Random value for moved1 "<<move_tree[moved1]<<std::endl;
+	std::cout<<"Random value for moved1 "<<move_tree[moved1]<<std::endl;*/
 }

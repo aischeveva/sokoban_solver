@@ -19,8 +19,8 @@ void PackingPlanFeatureSpaceCell::UpdateBoxesOnBoard(){
 }
 
 void PackingPlanFeatureSpaceCell::UpdateBoxesOnTarget(){
-    for(auto box : corresponding_boards_[0].GetBoxes()){
-        if(box.IsDelivered()) boxes_on_target_++;
+    for(auto goal : corresponding_boards_[0].GetGoals()){
+        if(goal.IsOccupied()) boxes_on_target_++;
     }
 }
 

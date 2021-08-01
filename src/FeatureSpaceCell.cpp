@@ -135,6 +135,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
     move_tree.push_back(initial_board);
 
     std::vector<BoardState> current_states; // vector to hold all states corresponding to current cell in feature space
+    current_states = initial_cell.GetStates();
     PackingPlanFeatureSpaceCell current_cell = initial_cell;
 
     //custom compare function to keep track of best moves:
@@ -143,7 +144,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
     //3) otherwise if a box can be moved from target, move it. Same as before, with several moves pick the one with higher distance
     //4) if 1) and 2) are not possible, just try to maximize the distance.
 	auto cmp = [](std::pair<BoardState, PackingPlanFeatureSpaceCell> left, std::pair<BoardState, PackingPlanFeatureSpaceCell> right) { 
-		if(left.first.GetWeight() < right.first.GetWeight()) return false;
+		if(left.first.GetWeight() > right.first.GetWeight()) return true;
         else if(left.second.GetBoxesOnBoard() < right.second.GetBoxesOnBoard()) return false; 
 		else if(left.second.GetBoxesOnTarget() < right.second.GetBoxesOnTarget()) return false;
 		else if(left.second.GetDistance() > right.second.GetDistance()) return false;
@@ -157,8 +158,6 @@ void FeatureSpaceCell::ComputePackingOrder(){
     while(current_cell.GetBoxesOnBoard() != 0){
         // get all states that correspond to the current cell of the feature space
         current_states = current_cell.GetStates();
-        //keep locally explored moves
-        std::set<BoardState> explored_moves;
         //find all possible moves from the current states
         std::priority_queue<std::pair<BoardState, PackingPlanFeatureSpaceCell>, std::vector<std::pair<BoardState, PackingPlanFeatureSpaceCell>>, decltype(cmp)> possible_moves(cmp);
         
@@ -169,6 +168,8 @@ void FeatureSpaceCell::ComputePackingOrder(){
             for(unsigned int i = 0; i < number_of_boxes; i++){
                 // moves available for i_th box only
                 // tries to find all available macro moves for this box
+                //keep locally explored moves
+                std::vector<BoardState> explored_moves;
 
                 // TODO: should take into account if the box can be pushed in this position or if it's its starting position
                 std::stack<BoardState> available_moves;
@@ -178,10 +179,10 @@ void FeatureSpaceCell::ComputePackingOrder(){
                     current_local_state = available_moves.top();
                     available_moves.pop();
                     //if the move hasn't been explored yet
-                    if(explored_moves.find(current_local_state) == explored_moves.end()){
+                    if(std::find(explored_moves.begin(), explored_moves.end(), current_local_state) == explored_moves.end()){
                         // mark move as checked
-                        explored_moves.insert(current_local_state);
-                        
+                        explored_moves.push_back(current_local_state);
+                        blocks = current_local_state.GetBlocks();
                         int x = current_local_state.GetBoxes()[i].GetX();
                         int y = current_local_state.GetBoxes()[i].GetY();
                         // if a box reached a sink room, remove it from the board and stop exploration for this box
@@ -204,13 +205,12 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 possible_moves.push(std::make_pair(current_local_state, PackingPlanFeatureSpaceCell(current_local_state)));
                             }
                             //otherwise check if there is enough space to pull the box in each four directions
-                            std::vector<std::vector<Block>> blocks = current_local_state.GetBlocks();
                             std::vector<Box> new_boxes;
                             std::vector<std::vector<Block>> new_blocks;
                             //check North
                             if(!blocks[x-1][y].IsOccupied() && !blocks[x-2][y].IsOccupied()){
                                 new_boxes = current_local_state.GetBoxes();
-                                new_blocks = blocks;
+                                new_blocks = current_local_state.GetBlocks();
                                 new_blocks[x][y].Free();
                                 new_blocks[x-1][y].Occupy();
                                 new_boxes[i].Move(North);
@@ -218,8 +218,8 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             }
                             //check South
                             if(!blocks[x+1][y].IsOccupied() && !blocks[x+2][y].IsOccupied()){
-                                new_boxes = current_state.GetBoxes();
-                                new_blocks = blocks;
+                                new_boxes = current_local_state.GetBoxes();
+                                new_blocks = current_local_state.GetBlocks();
                                 new_blocks[x][y].Free();
                                 new_blocks[x+1][y].Occupy();
                                 new_boxes[i].Move(South);
@@ -227,8 +227,8 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             }
                             //check East
                             if(!blocks[x][y+1].IsOccupied() && !blocks[x][y+2].IsOccupied()){
-                                new_boxes = current_state.GetBoxes();
-                                new_blocks = blocks;
+                                new_boxes = current_local_state.GetBoxes();
+                                new_blocks = current_local_state.GetBlocks();
                                 new_blocks[x][y].Free();
                                 new_blocks[x][y+1].Occupy();
                                 new_boxes[i].Move(East);
@@ -236,8 +236,8 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             }
                             //check West
                             if(!blocks[x][y-1].IsOccupied() && !blocks[x][y-2].IsOccupied()){
-                                new_boxes = current_state.GetBoxes();
-                                new_blocks = blocks;
+                                new_boxes = current_local_state.GetBoxes();
+                                new_blocks = current_local_state.GetBlocks();
                                 new_blocks[x][y].Free();
                                 new_blocks[x][y-1].Occupy();
                                 new_boxes[i].Move(West);
@@ -250,6 +250,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
         }
         //pick the best move according to features and distance:
         // if the queue was defined correctly (hopefully) the best move is the first one in the queue of possible moves
+        int test = 1;
         BoardState best_move = possible_moves.top().first;
         PackingPlanFeatureSpaceCell best_cell = possible_moves.top().second;
 

@@ -183,14 +183,14 @@ void BoardState::PrintBoardState(){
 
 //have to add that pushers have to see each other
 bool operator== (const BoardState& b1, const BoardState& b2){
-    if (b1.GetBoxes().size() != b2.GetBoxes().size()) return false;
-    std::set<Box> b1_boxes;
-    std::set<Box> b2_boxes;
+    std::set<std::pair<int, int>> b1_boxes;
+    std::set<std::pair<int, int>> b2_boxes;
     std::vector<Box> b1b = b1.GetBoxes();
     std::vector<Box> b2b = b2.GetBoxes();
+    if (b1b.size() != b2b.size()) return false;
     for(unsigned int i = 0; i < b1b.size(); i++){
-        b1_boxes.insert(b1b[i]);
-        b2_boxes.insert(b2b[i]);
+        b1_boxes.insert(std::make_pair(b1b[i].GetX(), b1b[i].GetY()));
+        b2_boxes.insert(std::make_pair(b2b[i].GetX(), b2b[i].GetY()));
     }
     return b1_boxes == b2_boxes;
 }

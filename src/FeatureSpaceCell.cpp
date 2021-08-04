@@ -164,13 +164,14 @@ void FeatureSpaceCell::ComputePackingOrder(){
         //TODO: check that local current state and current state are used correctly
         for(auto current_state : current_states){
             //look at moving one box at a time
+            auto parent_state = std::find(move_tree.begin(), move_tree.end(), current_state);
             unsigned int number_of_boxes = current_state.GetBoxes().size();
             for(unsigned int i = 0; i < number_of_boxes; i++){
                 // moves available for i_th box only
                 // tries to find all available macro moves for this box
                 //keep locally explored moves
                 std::vector<BoardState> explored_moves;
-
+                std::cout<<"Current box: "<<i<<std::endl;
                 // TODO: should take into account if the box can be pushed in this position or if it's its starting position
                 std::stack<BoardState> available_moves;
                 BoardState current_local_state = current_state;
@@ -193,7 +194,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             std::vector<std::vector<Block>> new_blocks = current_local_state.GetBlocks();
                             new_boxes.erase(new_boxes.begin() + i);
                             new_blocks[x][y].Free();
-                            current_local_state = BoardState(new_blocks, new_boxes, &current_state, true);
+                            current_local_state = BoardState(new_blocks, new_boxes, &(*parent_state), true);
                             // add it to the possible moves if it's not in the move tree already
                             if(std::find(move_tree.begin(), move_tree.end(), current_local_state) == move_tree.end()){
                                 possible_moves.push(std::make_pair(current_local_state, PackingPlanFeatureSpaceCell(current_local_state)));
@@ -214,7 +215,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 new_blocks[x][y].Free();
                                 new_blocks[x-1][y].Occupy();
                                 new_boxes[i].Move(North);
-                                available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
+                                available_moves.push(BoardState(new_blocks, new_boxes, &(*parent_state)));
                             }
                             //check South
                             if(!blocks[x+1][y].IsOccupied() && !blocks[x+2][y].IsOccupied()){
@@ -223,7 +224,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 new_blocks[x][y].Free();
                                 new_blocks[x+1][y].Occupy();
                                 new_boxes[i].Move(South);
-                                available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
+                                available_moves.push(BoardState(new_blocks, new_boxes, &(*parent_state)));
                             }
                             //check East
                             if(!blocks[x][y+1].IsOccupied() && !blocks[x][y+2].IsOccupied()){
@@ -232,7 +233,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 new_blocks[x][y].Free();
                                 new_blocks[x][y+1].Occupy();
                                 new_boxes[i].Move(East);
-                                available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
+                                available_moves.push(BoardState(new_blocks, new_boxes, &(*parent_state)));
                             }
                             //check West
                             if(!blocks[x][y-1].IsOccupied() && !blocks[x][y-2].IsOccupied()){
@@ -241,9 +242,12 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 new_blocks[x][y].Free();
                                 new_blocks[x][y-1].Occupy();
                                 new_boxes[i].Move(West);
-                                available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
+                                available_moves.push(BoardState(new_blocks, new_boxes, &(*parent_state)));
                             }
                         }
+                    }
+                    else {
+                        std::cout<<std::distance(explored_moves.begin(), std::find(explored_moves.begin(), explored_moves.end(), current_local_state))<<std::endl;
                     }
                 }
             }

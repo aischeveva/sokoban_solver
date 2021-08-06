@@ -17,7 +17,7 @@ private:
     std::vector<BoardState> corresponding_boards_;
 public:
     PackingPlanFeatureSpaceCell(){}
-    PackingPlanFeatureSpaceCell(BoardState &board);
+    PackingPlanFeatureSpaceCell(BoardState board);
     ~PackingPlanFeatureSpaceCell(){}
 
     int GetBoxesOnBoard() const {return boxes_on_board_;}

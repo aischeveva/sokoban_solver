@@ -1,6 +1,6 @@
 #include "PackingPlanFeatureSpaceCell.hpp"
 
-PackingPlanFeatureSpaceCell::PackingPlanFeatureSpaceCell(BoardState &board){
+PackingPlanFeatureSpaceCell::PackingPlanFeatureSpaceCell(BoardState board){
     corresponding_boards_.push_back(board);
     boxes_on_board_ = 0;
     boxes_on_target_ = 0;

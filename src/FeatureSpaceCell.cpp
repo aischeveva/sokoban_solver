@@ -134,7 +134,11 @@ void FeatureSpaceCell::ComputePackingOrder(){
     std::vector<BoardState> move_tree;
     move_tree.push_back(initial_board);
 
-    std::vector<BoardState> current_states; // vector to hold all states corresponding to current cell in feature space
+    //set up a structure to keep track of parent-child relations between nodes in move tree
+    std::vector<std::pair<BoardState, BoardState>> parent;
+
+    // vector to hold all states corresponding to current cell in feature space
+    std::vector<BoardState> current_states; 
     current_states = initial_cell.GetStates();
     PackingPlanFeatureSpaceCell current_cell = initial_cell;
 
@@ -162,16 +166,15 @@ void FeatureSpaceCell::ComputePackingOrder(){
         std::priority_queue<std::pair<BoardState, PackingPlanFeatureSpaceCell>, std::vector<std::pair<BoardState, PackingPlanFeatureSpaceCell>>, decltype(cmp)> possible_moves(cmp);
         
         //TODO: check that local current state and current state are used correctly
-        for(auto current_state : current_states){
+        for(auto &current_state : current_states){
             //look at moving one box at a time
-            auto parent_state = std::find(move_tree.begin(), move_tree.end(), current_state);
+            //auto parent_state = std::find(move_tree.begin(), move_tree.end(), current_state);
             unsigned int number_of_boxes = current_state.GetBoxes().size();
             for(unsigned int i = 0; i < number_of_boxes; i++){
                 // moves available for i_th box only
                 // tries to find all available macro moves for this box
                 //keep locally explored moves
                 std::vector<BoardState> explored_moves;
-                std::cout<<"Current box: "<<i<<std::endl;
                 // TODO: should take into account if the box can be pushed in this position or if it's its starting position
                 std::stack<BoardState> available_moves;
                 BoardState current_local_state = current_state;
@@ -194,7 +197,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             std::vector<std::vector<Block>> new_blocks = current_local_state.GetBlocks();
                             new_boxes.erase(new_boxes.begin() + i);
                             new_blocks[x][y].Free();
-                            current_local_state = BoardState(new_blocks, new_boxes, &(*parent_state), true);
+                            current_local_state = BoardState(new_blocks, new_boxes, &current_state, true);
                             // add it to the possible moves if it's not in the move tree already
                             if(std::find(move_tree.begin(), move_tree.end(), current_local_state) == move_tree.end()){
                                 possible_moves.push(std::make_pair(current_local_state, PackingPlanFeatureSpaceCell(current_local_state)));
@@ -215,7 +218,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 new_blocks[x][y].Free();
                                 new_blocks[x-1][y].Occupy();
                                 new_boxes[i].Move(North);
-                                available_moves.push(BoardState(new_blocks, new_boxes, &(*parent_state)));
+                                available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
                             }
                             //check South
                             if(!blocks[x+1][y].IsOccupied() && !blocks[x+2][y].IsOccupied()){
@@ -224,7 +227,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 new_blocks[x][y].Free();
                                 new_blocks[x+1][y].Occupy();
                                 new_boxes[i].Move(South);
-                                available_moves.push(BoardState(new_blocks, new_boxes, &(*parent_state)));
+                                available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
                             }
                             //check East
                             if(!blocks[x][y+1].IsOccupied() && !blocks[x][y+2].IsOccupied()){
@@ -233,7 +236,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 new_blocks[x][y].Free();
                                 new_blocks[x][y+1].Occupy();
                                 new_boxes[i].Move(East);
-                                available_moves.push(BoardState(new_blocks, new_boxes, &(*parent_state)));
+                                available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
                             }
                             //check West
                             if(!blocks[x][y-1].IsOccupied() && !blocks[x][y-2].IsOccupied()){
@@ -242,24 +245,22 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 new_blocks[x][y].Free();
                                 new_blocks[x][y-1].Occupy();
                                 new_boxes[i].Move(West);
-                                available_moves.push(BoardState(new_blocks, new_boxes, &(*parent_state)));
+                                available_moves.push(BoardState(new_blocks, new_boxes, &current_state));
                             }
                         }
-                    }
-                    else {
-                        std::cout<<std::distance(explored_moves.begin(), std::find(explored_moves.begin(), explored_moves.end(), current_local_state))<<std::endl;
                     }
                 }
             }
         }
         //pick the best move according to features and distance:
         // if the queue was defined correctly (hopefully) the best move is the first one in the queue of possible moves
-        int test = 1;
         BoardState best_move = possible_moves.top().first;
         PackingPlanFeatureSpaceCell best_cell = possible_moves.top().second;
 
-        //add a move to the tree
+        //add a move to the tree and parent connection
         move_tree.push_back(best_move);
+        parent.push_back(std::make_pair(best_move, best_move.GetPreviousState()));
+ 
         //check if the cell in feature space was already discovered:
         //if yes, add the move to the list of the domain states that project on this cell
         //if no, add new feature cell to the feature space
@@ -282,7 +283,8 @@ void FeatureSpaceCell::ComputePackingOrder(){
     std::vector<BoardState> path;
     BoardState next = move_tree.back();
     while(!(next == initial_board)){
-        next = next.GetPreviousState();
+        auto it = std::find_if(parent.begin(), parent.end(), [&next](const std::pair<BoardState, BoardState>& element){ return element.first == next;} );
+        next = it->second;
         path.push_back(next);
     }
 

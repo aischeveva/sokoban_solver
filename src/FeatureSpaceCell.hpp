@@ -58,6 +58,7 @@ class FeatureSpaceCell{
         std::vector<std::vector<int>> rooms_;
         std::map<std::pair<int, int>, int> room_by_coord_;
         std::map<int, std::vector<Block>> blocks_by_room_;
+        std::vector<std::vector<bool>> adjacency_;
         int room_number_;
         int sink_room_;
         int packing_number_;
@@ -81,6 +82,7 @@ class FeatureSpaceCell{
         void ComputePackingNumber();
         void ComputePackingOrder();
         void ComputeConnectivity();
+        void ComputeRoomConnectivity();
         void ComputeOutOfPlan();
 
         /* preparational functions */

@@ -56,6 +56,9 @@ class FeatureSpaceCell{
     private:
         BoardState board_; //change it to vector of boards
         std::vector<std::vector<int>> rooms_;
+        std::map<std::pair<int, int>, int> room_by_coord_;
+        std::map<int, std::vector<Block>> blocks_by_room_;
+        int room_number_;
         int sink_room_;
         int packing_number_;
         std::vector<Block> packing_order_;
@@ -72,6 +75,7 @@ class FeatureSpaceCell{
         int GetConnectivity() const {return connectivity_;}
         int GetRoomConnectivity() const {return room_connectivity_;}
         int GetOutOfPlan() const {return out_of_plan_;}
+        int GetRoomNumber() const {return room_number_;}
 
         /* compute heuristics */
         void ComputePackingNumber();
@@ -82,6 +86,7 @@ class FeatureSpaceCell{
         /* preparational functions */
         void FindSinkRoom();
         std::map<std::pair<int,int>, int> FindRooms();
+        std::vector<std::vector<bool>> ComputeAdjacency();
         void PrintRooms();
 
 };

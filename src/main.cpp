@@ -41,7 +41,8 @@ int main(int argc, char *argv[])
 	for(auto const& room : r){
 		std::cout<<"("<<room.first.first<<", "<<room.first.second<<") -- "<<room.second<<std::endl;
 	}
-	std::cout<<"Testing priority queues:"<<std::endl;
+	std::cout<<"Number of rooms: "<<testSpace.GetRoomNumber()<<std::endl;
+	testSpace.ComputeAdjacency();
 	//custom compare function
 	/*auto cmp = [](std::pair<BoardState, PackingPlanFeatureSpaceCell> left, std::pair<BoardState, PackingPlanFeatureSpaceCell> right) { 
 		if(left.second.GetBoxesOnBoard() < right.second.GetBoxesOnBoard()) return false; 

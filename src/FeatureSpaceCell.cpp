@@ -310,6 +310,7 @@ void FeatureSpaceCell::ComputeOutOfPlan(){
 }
 
 std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
+    //TODO: add that if only 1 square overlaps in two rooms, mark this square not belonging to any room
     std::map<std::pair<int,int>, int> rooms;
     std::vector<std::vector<Block>> blocks = board_.GetBlocks();
 
@@ -362,10 +363,6 @@ std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
         }
     }
 
-    // TODO: fix the 3x2 rectangle search
-    // have to check overlap over all cells
-    // if the room overlaps with two or more other rooms, just unify them to one, hell yeah
-
     // go through the level map with 3x2 rectangles
     for(unsigned int i = 0; i < blocks.size()-2; i++){
         for(unsigned int j = 0; j < blocks[i].size()-1; j++){
@@ -416,10 +413,10 @@ std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
 
                 //if the resulting set has 1 room or more, update those
                 if(overlapping_rooms.size() > 0){
-                    //select the first room
+                    //select the room with smallest number
                     room = *overlapping_rooms.begin();
                     //if there are more than one room, update it to be equal to the first room
-                    for(auto it = overlapping_rooms.begin()++; it != overlapping_rooms.end(); it++){
+                    for(auto it = ++overlapping_rooms.begin(); it != overlapping_rooms.end(); it++){
                         for(auto& r : rooms){
                             if(r.second == *it){
                                 r.second = room;
@@ -437,5 +434,70 @@ std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
         }
     }
 
+    for(auto room : rooms){
+        blocks_by_room_[room.second].push_back(blocks[room.first.first][room.first.second]);
+    }
+
+    //adjusting correct room numbering, so there wouldn't be, for example, rooms 0,1,3 instead of 0,1,2 
+    int correct_room = 0;
+    for(auto& room : blocks_by_room_){
+        if (room.first != correct_room){
+            for(auto block : room.second){
+                std::pair<int, int> coord = std::make_pair(block.GetX(), block.GetY());
+                rooms[coord] = correct_room;
+            }
+        }
+        correct_room++;
+    }
+
+    blocks_by_room_.clear();
+    for(auto room : rooms){
+        blocks_by_room_[room.second].push_back(blocks[room.first.first][room.first.second]);
+    }
+
+    room_by_coord_ = rooms;
+    room_number_ = blocks_by_room_.size();
     return rooms;
+}
+
+std::vector<std::vector<bool>> FeatureSpaceCell::ComputeAdjacency(){
+    std::vector<std::vector<bool>> adjacency(room_number_, std::vector<bool>(room_number_, false));
+     
+    std::vector<std::vector<Block>> blocks = board_.GetBlocks();
+
+    //compute connectivity from the perspective of each room
+    for(int i = 0; i < room_number_; i++){
+        std::vector<Block> room_blocks = blocks_by_room_[i];
+        std::set<std::pair<int, int>> visited;
+        std::queue<std::pair<int, int>> bfs_queue;
+        bfs_queue.push(std::make_pair(room_blocks[0].GetX(), room_blocks[0].GetY()));
+        while(!bfs_queue.empty()){
+            std::pair<int, int> current_block = bfs_queue.front();
+            bfs_queue.pop();
+            if(visited.find(current_block) == visited.end()){
+                visited.insert(current_block);
+                if(room_by_coord_.find(current_block) == room_by_coord_.end() || room_by_coord_[current_block] == i){
+                    std::vector<Block> neighbours = blocks[current_block.first][current_block.second].GetNeighbours();
+                    for(Block neighbour : neighbours){
+                        if( !(neighbour.GetType() == Wall || neighbour.GetType() == Outer) ){
+                            bfs_queue.push(std::make_pair(neighbour.GetX(), neighbour.GetY()));
+                        }
+                    }
+                } else {
+                    int j = room_by_coord_[current_block];
+                    adjacency[i][j] = true;
+                    adjacency[j][i] = true;
+                }
+            }
+
+        }
+    }
+
+    for (auto row : adjacency){
+        for(auto cell : row){
+            std::cout<<cell<<" ";
+        }
+        std::cout<<std::endl;
+    }
+    return adjacency;
 }

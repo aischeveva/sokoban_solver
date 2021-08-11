@@ -114,6 +114,8 @@ void FeatureSpaceCell::ComputePackingOrder(){
     std::vector<Box> boxes_on_goals;
     std::vector<std::vector<Block>> blocks = board_.GetBlocks();
     // free initially occupied blocks
+    Pusher pusher = board_.GetPusher();
+    blocks[pusher.GetX()][pusher.GetY()].Free();
     for(auto box : board_.GetBoxes()){
         blocks[box.GetX()][box.GetY()].Free();
     }
@@ -153,10 +155,12 @@ void FeatureSpaceCell::ComputePackingOrder(){
 
 	 };
 
-    // TODO: define what to do when the situation is solved and how to recreate the solution
+    // TODO: have better definition on when the situation is solved
     //search feature space while all the boxes are not deleted
     //or the maximum number of iterations is not reached (NOT ADDED YET)
-    while(current_cell.GetBoxesOnBoard() != 0){
+    int iteration_count = 0;
+    while(current_cell.GetBoxesOnBoard() != 0 && iteration_count < 150){
+        iteration_count++;
         // get all states that correspond to the current cell of the feature space
         current_states = current_cell.GetStates();
         //find all possible moves from the current states
@@ -276,6 +280,10 @@ void FeatureSpaceCell::ComputePackingOrder(){
         else current_cell = *(it+1);
     }
 
+    if(iteration_count == 150){
+        std::cout<<"Failed to finish computations"<<std::endl;
+        return;
+    }
     //retrieve the path from move tree
     std::vector<BoardState> path;
     BoardState next = move_tree.back();
@@ -299,4 +307,135 @@ void FeatureSpaceCell::ComputePackingOrder(){
 
 void FeatureSpaceCell::ComputeOutOfPlan(){
     /// TODO
+}
+
+std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
+    std::map<std::pair<int,int>, int> rooms;
+    std::vector<std::vector<Block>> blocks = board_.GetBlocks();
+
+    int current_room = 0;
+
+    //first go through the level map with 2x3 rectangles
+    for(unsigned int i = 0; i < blocks.size()-1; i++){
+        for(unsigned int j = 0; j < blocks[i].size()-2; j++){
+            bool one_room = true;
+            std::vector<std::pair<int,int>> potential_room;
+
+            int counter_height = 0;
+            while(counter_height < 2){
+                int counter_width = 0;
+                while(counter_width < 3){
+                    //if one of the blocks is not a floor block, exit the check for the current rectangle
+                    if(blocks[i+counter_height][j+counter_width].GetType() != Floor && blocks[i+counter_height][j+counter_width].GetType() != Goal){
+                        one_room = false;
+                        counter_height = 2;
+                        counter_width = 3;
+                    } else {
+                        potential_room.push_back(std::make_pair(blocks[i+counter_height][j+counter_width].GetX(), blocks[i+counter_height][j+counter_width].GetY()));
+                    }
+                    counter_width++;
+                }
+                counter_height++;
+            }
+            //if all blocks in rectangle are floor, mark them as one room
+            if(one_room){
+                //first check if two (or more) blocks from the upper row/left-most column overlap with previously found room
+                //don't have to check below, because we go top down left to right
+                int room = current_room;
+                std::pair<int, int> coord1 = potential_room[0];
+                std::pair<int, int> coord2 = potential_room[1];
+                std::pair<int, int> coord3 = potential_room[2];
+                std::pair<int, int> coord4 = potential_room[3];
+                if(rooms.find(coord1) != rooms.end() && rooms.find(coord2) != rooms.end() && rooms[coord1] == rooms[coord2]){
+                    room = rooms[coord1];
+                } else if (rooms.find(coord2) != rooms.end() && rooms.find(coord3) != rooms.end() && rooms[coord2] == rooms[coord3]){
+                    room = rooms[coord2];
+                } else if (rooms.find(coord1) != rooms.end() && rooms.find(coord4) != rooms.end() && rooms[coord1] == rooms[coord4]){
+                    room = rooms[coord1];
+                }
+                for(auto coordinate : potential_room){
+                    rooms[coordinate] = room;
+                }
+                if(room == current_room) current_room++;
+            }
+
+        }
+    }
+
+    // TODO: fix the 3x2 rectangle search
+    // have to check overlap over all cells
+    // if the room overlaps with two or more other rooms, just unify them to one, hell yeah
+
+    // go through the level map with 3x2 rectangles
+    for(unsigned int i = 0; i < blocks.size()-2; i++){
+        for(unsigned int j = 0; j < blocks[i].size()-1; j++){
+            bool one_room = true;
+            std::vector<std::pair<int,int>> potential_room;
+
+            int counter_height = 0;
+            while(counter_height < 3){
+                int counter_width = 0;
+                while(counter_width < 2){
+                    //if one of the blocks is not a floor block, exit the check for the current rectangle
+                    if(blocks[i+counter_height][j+counter_width].GetType() != Floor && blocks[i+counter_height][j+counter_width].GetType() != Goal){
+                        one_room = false;
+                        counter_height = 3;
+                        counter_width = 2;
+                    } else {
+                        potential_room.push_back(std::make_pair(blocks[i+counter_height][j+counter_width].GetX(), blocks[i+counter_height][j+counter_width].GetY()));
+                    }
+                    counter_width++;
+                }
+                counter_height++;
+            }
+            //if all blocks in rectangle are floor, mark them as one room
+            if(one_room){
+                // save coordinates for easier checking for overlapping rooms
+                int room = current_room;
+                std::set<int> overlapping_rooms;
+
+                auto end = rooms.end();
+                //check by row
+                for(int i = 0; i < 6; i += 2){
+                    std::pair<int, int> coord1 = potential_room[i];
+                    std::pair<int, int> coord2 = potential_room[i+1];
+                    if(rooms.find(coord1) != end && rooms.find(coord2) != end && rooms[coord1] == rooms[coord2]){
+                        overlapping_rooms.insert(rooms[coord1]);
+                    }
+                }
+                //check pairs by columns
+                for(int j = 0; j < 4; j += 2){
+                    for(int i = 0; i < 2; i++){
+                        std::pair<int, int> coord1 = potential_room[j+i];
+                        std::pair<int, int> coord2 = potential_room[j+2+i];
+                        if(rooms.find(coord1) != end && rooms.find(coord2) != end && rooms[coord1] == rooms[coord2]){
+                            overlapping_rooms.insert(rooms[coord1]);
+                        }
+                    }
+                }
+
+                //if the resulting set has 1 room or more, update those
+                if(overlapping_rooms.size() > 0){
+                    //select the first room
+                    room = *overlapping_rooms.begin();
+                    //if there are more than one room, update it to be equal to the first room
+                    for(auto it = overlapping_rooms.begin()++; it != overlapping_rooms.end(); it++){
+                        for(auto& r : rooms){
+                            if(r.second == *it){
+                                r.second = room;
+                            }
+                        }
+                    }
+                }
+
+                for(auto coordinate : potential_room){
+                    rooms[coordinate] = room;
+                }
+                if(room == current_room) current_room++;
+            }
+
+        }
+    }
+
+    return rooms;
 }

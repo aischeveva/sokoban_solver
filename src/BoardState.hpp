@@ -43,6 +43,7 @@ class BoardState {
         int GetWeight() const {return weight_;}
         std::vector<std::vector<Block>> GetBlocks() const {return blocks_;}
         std::vector<Box> GetBoxes() const {return boxes_;}
+        Pusher GetPusher() const {return pusher_;}
         std::vector<Block> GetGoals();
         BoardState GetPreviousState() const {return *previous_board_;}
 

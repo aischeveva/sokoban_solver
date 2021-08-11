@@ -43,6 +43,14 @@
     *                          that actually means to find all moves (that are not in the tree yet) from the corresponding states
     * about macro moves: pick a box, and treat it as an only moving object as long as you can move it
     *                    that would create a macro move basically
+    * 
+Computing rooms correctly:
+    * Traverse level map with 2x3 and 3x2 rectangles
+    * if all tiles are floor tiles, that's a minimum room
+    * if two minimum room overlap in at least two blocks, it's actually one room
+    * if two rooms overlap in one block only, it's actually two separate rooms and the block belongs to none of them
+    * keep the room info as a map: block coordinate (x, y) -> room number
+    * if the block coordinates are not in a map, block doesn't belong to any room
 */
 class FeatureSpaceCell{
     private:
@@ -60,7 +68,7 @@ class FeatureSpaceCell{
         FeatureSpaceCell(BoardState &boardState): board_(boardState), connectivity_(0), room_connectivity_(0), out_of_plan_(0) {}
 
         /* getters */
-        int GetPacking() const {return packing_number_;}
+        std::vector<Block> GetPackingOrder() const {return packing_order_;}
         int GetConnectivity() const {return connectivity_;}
         int GetRoomConnectivity() const {return room_connectivity_;}
         int GetOutOfPlan() const {return out_of_plan_;}
@@ -73,6 +81,7 @@ class FeatureSpaceCell{
 
         /* preparational functions */
         void FindSinkRoom();
+        std::map<std::pair<int,int>, int> FindRooms();
         void PrintRooms();
 
 };

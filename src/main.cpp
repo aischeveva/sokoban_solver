@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 	BoardState testBoard = BoardState();
 	std::cout<<"Loading file. "<<std::endl;
 
-	std::string filename = "../src/levels/xsokoban/screen.20";
+	std::string filename = "../src/levels/xsokoban/screen.74";
 
 	//takes filename as the first argument
 	//if none were passed, tries to load the first level located at "./src/levels/xsokoban/screen.1"
@@ -38,13 +38,14 @@ int main(int argc, char *argv[])
 		std::cout<<block.GetX()<<", "<< block.GetY()<<std::endl;
 	}*/
 	std::map<std::pair<int,int>, int> r = testSpace.FindRooms();
-	for(auto const& room : r){
+	/*for(auto const& room : r){
 		std::cout<<"("<<room.first.first<<", "<<room.first.second<<") -- "<<room.second<<std::endl;
-	}
+	}*/
 	std::cout<<"Number of rooms: "<<testSpace.GetRoomNumber()<<std::endl;
-	testSpace.ComputeAdjacency();
-	testSpace.ComputeRoomConnectivity();
-	std::cout<<"Room connectivity (broken edges): "<<testSpace.GetRoomConnectivity()<<std::endl;
+	testSpace.FindBasins();
+	//testSpace.ComputeAdjacency();
+	//testSpace.ComputeRoomConnectivity();
+	//std::cout<<"Room connectivity (broken edges): "<<testSpace.GetRoomConnectivity()<<std::endl;
 	//custom compare function
 	/*auto cmp = [](std::pair<BoardState, PackingPlanFeatureSpaceCell> left, std::pair<BoardState, PackingPlanFeatureSpaceCell> right) { 
 		if(left.second.GetBoxesOnBoard() < right.second.GetBoxesOnBoard()) return false; 

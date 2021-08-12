@@ -1,12 +1,16 @@
 DONE:
-* connectiviry feature computes ok
+* connectivity feature computes ok
+* room connectivity computes ok
+* rooms are determined correctly
 
 TODO:
-1. Leave out Room Connectivity for now, concentrate on Packing order and Out of Plan
-2. Packing Order feature
-	* how to represent?
-	* use backward search -- how far to pull boxes?
-	* fess in there?
+1. Link basins to room, pick largest basin based on the box number
+	* how to pick a sink room within a basin
+2. Packing Order feature -- produces some results now
+	* how to take advisor into account
+	* something fishy with move ordering
+	* doesn't produce correct results :(
 3. Out of Plan feature
-4. Advisors
-5. solving routine itself
+4. Hotspots
+5. Advisors
+6. solving routine itself

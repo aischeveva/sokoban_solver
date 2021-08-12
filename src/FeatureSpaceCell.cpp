@@ -497,6 +497,83 @@ std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
     return rooms;
 }
 
+void FeatureSpaceCell::FindBasins(){
+    std::vector<std::vector<Block>> blocks = board_.GetBlocks();
+
+    //first find goal room
+    int goal_room;
+    bool found = false;
+    for(auto room : blocks_by_room_){
+        for(auto block : room.second){
+            if(block.GetType() == Goal){
+                goal_room = room.first;
+                found = true;
+                break;
+            }
+        }
+        if(found) break;
+    }
+    std::cout<<"Goal room: "<<goal_room<<std::endl;
+
+    //find exits from the goal room
+    std::vector<Block> exits;
+    for(auto block : blocks_by_room_[goal_room]){
+        for(auto neighbour : block.GetNeighbours()){
+            std::pair<int, int> coord = std::make_pair(neighbour.GetX(), neighbour.GetY());
+            if(neighbour.GetType() == Floor && (room_by_coord_.find(coord) == room_by_coord_.end() || room_by_coord_[coord] != goal_room)){
+                exits.push_back(blocks[neighbour.GetX()][neighbour.GetY()]);
+            }
+        }
+    }
+    
+    std::map<int, std::vector<Block>> basins;
+    int basin_count = 0;
+    //start exploring basins corresponding to each exit
+    for(auto exit : exits){
+        std::set<std::pair<int, int>> visited;
+        std::queue<std::pair<int, int>> bfs_queue;
+        bfs_queue.push(std::make_pair(exit.GetX(), exit.GetY()));
+        while(!bfs_queue.empty()){
+            std::pair<int, int> current = bfs_queue.front();
+            bfs_queue.pop();
+            if(visited.find(current) == visited.end()){
+                visited.insert(current);
+                int x, y; std::tie(x, y) = current;
+                basins[basin_count].push_back(blocks[x][y]);
+                //check if box can be pushed to the current square from all four directions
+                //basically that means that both the neighbour square and square behind it are of type Floor
+
+                //check North
+                if(blocks[x-1][y].GetType() == Floor && blocks[x-2][y].GetType() == Floor){
+                    bfs_queue.push(std::make_pair(x-1, y));
+                }
+                //check South
+                if(blocks[x+1][y].GetType() == Floor && blocks[x+2][y].GetType() == Floor){
+                    bfs_queue.push(std::make_pair(x+1, y));
+                }
+                //check East
+                if(blocks[x][y+1].GetType() == Floor && blocks[x][y+2].GetType() == Floor){
+                    bfs_queue.push(std::make_pair(x, y+1));
+                }
+                //check West
+                if(blocks[x][y-1].GetType() == Floor && blocks[x][y-2].GetType() == Floor){
+                    bfs_queue.push(std::make_pair(x, y-1));
+                }
+            }
+        }
+        basin_count++;
+    }
+
+    for(auto basin : basins){
+        std::cout<<"Basin "<<basin.first<<":"<<std::endl;
+        for(auto block : basin.second){
+            block.Print();
+        }
+    }
+    
+    basins_=basins;
+}
+
 std::vector<std::vector<bool>> FeatureSpaceCell::ComputeAdjacency(){
     std::vector<std::vector<bool>> adjacency(room_number_, std::vector<bool>(room_number_, false));
      

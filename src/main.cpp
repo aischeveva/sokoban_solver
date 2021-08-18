@@ -30,8 +30,6 @@ int main(int argc, char *argv[])
 	testSpace.ComputeConnectivity();
 	std::cout<<"The current number of disconnected rooms is: "<<testSpace.GetConnectivity()<<std::endl;
 	std::cout<<"The current number of boxes blocking tunnels is: "<<testSpace.GetRoomConnectivity()<<std::endl;
-	testSpace.FindSinkRoom();
-	testSpace.PrintRooms();
 
 	/*testSpace.ComputePackingOrder();
 	for(auto block : testSpace.GetPackingOrder()){
@@ -43,6 +41,9 @@ int main(int argc, char *argv[])
 	}*/
 	std::cout<<"Number of rooms: "<<testSpace.GetRoomNumber()<<std::endl;
 	testSpace.FindBasins();
+	testSpace.PrintRooms();
+	testSpace.ComputeOutOfPlan();
+	std::cout<<"Number out of plan boxes: "<<testSpace.GetOutOfPlan()<<std::endl;
 	//testSpace.ComputeAdjacency();
 	//testSpace.ComputeRoomConnectivity();
 	//std::cout<<"Room connectivity (broken edges): "<<testSpace.GetRoomConnectivity()<<std::endl;

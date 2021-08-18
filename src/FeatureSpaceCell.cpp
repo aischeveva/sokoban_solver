@@ -94,7 +94,8 @@ void FeatureSpaceCell::ComputePackingOrder(){
                         // if a box reached a sink room, remove it from the board and stop exploration for this box
                         // for now let's assume that is the only move that would be picked by advisor
                         // TODO: but in reality need to add connectivity check
-                        if(rooms_[x][y] == sink_room_){
+                        std::pair<int, int> coord = std::make_pair(x, y);
+                        if(room_by_coord_.count(coord) && room_by_coord_[coord] == sink_room_){
                             std::vector<Box> new_boxes = current_macro_move->GetBoxes();
                             std::vector<std::vector<Block>> new_blocks = current_macro_move->GetBlocks();
                             new_boxes.erase(new_boxes.begin() + i);
@@ -239,8 +240,6 @@ void FeatureSpaceCell::ComputeConnectivity(){
             }
         }
     }
-
-    rooms_ = room;
 }
 
 void FeatureSpaceCell::ComputeRoomConnectivity(){
@@ -265,7 +264,7 @@ void FeatureSpaceCell::ComputeRoomConnectivity(){
                             bfs_queue.pop();
                             if(visited.find(current_block) == visited.end()){
                                 visited.insert(current_block);
-                                if(room_by_coord_.find(current_block) == room_by_coord_.end() || room_by_coord_[current_block] == i){
+                                if(!room_by_coord_.count(current_block) || room_by_coord_[current_block] == i){
                                     std::vector<Block> neighbours = blocks[current_block.first][current_block.second].GetNeighbours();
                                     for(Block neighbour : neighbours){
                                         if( !(neighbour.GetType() == Wall || neighbour.GetType() == Outer || neighbour.IsOccupied()) ){
@@ -291,59 +290,18 @@ void FeatureSpaceCell::ComputeRoomConnectivity(){
 
 void FeatureSpaceCell::ComputeOutOfPlan(){
     /// TODO
-}
-
-void FeatureSpaceCell::FindSinkRoom(){
-    std::vector<int> candidate_rooms(connectivity_, 0);
     std::vector<Box> boxes = board_.GetBoxes();
-
-    // find a sink room -- a basin with the most boxes in it at the beginning of the level
-    for(auto box = boxes.begin(); box != boxes.end(); box++){
-        int x = (*box).GetX();
-        int y = (*box).GetY();
-        std::vector<int> checked_rooms;
-        if(rooms_[x-1][y] > 0) {
-            checked_rooms.push_back(rooms_[x-1][y]);
-            candidate_rooms[rooms_[x-1][y] - 1]++;
-            }
-        if(rooms_[x+1][y] > 0 && 
-        std::find(checked_rooms.begin(), checked_rooms.end(), rooms_[x+1][y]) == checked_rooms.end()) {
-            checked_rooms.push_back(rooms_[x+1][y]);
-            candidate_rooms[rooms_[x+1][y] - 1]++;
-            }
-        if(rooms_[x][y-1] > 0 && 
-        std::find(checked_rooms.begin(), checked_rooms.end(), rooms_[x][y-1]) == checked_rooms.end()) {
-            checked_rooms.push_back(rooms_[x][y-1]);
-            candidate_rooms[rooms_[x][y-1] - 1]++;
-            }
-        if(rooms_[x][y+1] > 0 && 
-        std::find(checked_rooms.begin(), checked_rooms.end(), rooms_[x][y+1]) == checked_rooms.end()) {
-            candidate_rooms[rooms_[x][y+1] - 1]++;
-            }
+    for(auto box : boxes){
+        std::pair<int, int> coord = std::make_pair(box.GetX(), box.GetY());
+        auto basin = basin_by_coord_.find(coord);
+        if(basin == basin_by_coord_.end()) {
+            out_of_plan_++;
+            std::cout<<"Box at coordinate ("<<coord.first<<", "<<coord.second<<") is out of plan"<<std::endl;
+        } else if(basin->second != sink_room_basin_) {
+            out_of_plan_++;
+            std::cout<<"Box at coordinate ("<<coord.first<<", "<<coord.second<<") is out of plan"<<std::endl;
+        }
     }
-    int sink_room = 1 + std::max_element(candidate_rooms.begin(), candidate_rooms.end()) - candidate_rooms.begin();
-
-    //update room numbers for box positions -- initially set to 0
-    for(auto box = boxes.begin(); box != boxes.end(); box++){
-        int x = (*box).GetX();
-        int y = (*box).GetY();
-        std::vector<int> rooms_around(connectivity_, 0);
-        if(rooms_[x-1][y] > 0) {
-            rooms_around[rooms_[x-1][y] - 1] = candidate_rooms[rooms_[x-1][y] - 1];
-            }
-        if(rooms_[x+1][y] > 0) {
-            rooms_around[rooms_[x+1][y] - 1] = candidate_rooms[rooms_[x+1][y] - 1];
-            }
-        if(rooms_[x][y-1] > 0) {
-            rooms_around[rooms_[x][y-1] - 1] = candidate_rooms[rooms_[x][y-1] - 1];
-            }
-        if(rooms_[x][y+1] > 0) {
-            rooms_around[rooms_[x][y+1] - 1] = candidate_rooms[rooms_[x][y+1] - 1];
-            }
-        rooms_[x][y] = 1 + std::max_element(rooms_around.begin(), rooms_around.end()) - rooms_around.begin();
-    }
-    std::cout<<"Our suggested sink room is room number "<<sink_room<<std::endl;
-    sink_room_ = sink_room;
 }
 
 std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
@@ -384,11 +342,11 @@ std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
                 std::pair<int, int> coord2 = potential_room[1];
                 std::pair<int, int> coord3 = potential_room[2];
                 std::pair<int, int> coord4 = potential_room[3];
-                if(rooms.find(coord1) != rooms.end() && rooms.find(coord2) != rooms.end() && rooms[coord1] == rooms[coord2]){
+                if(rooms.count(coord1) && rooms.count(coord2) && rooms[coord1] == rooms[coord2]){
                     room = rooms[coord1];
-                } else if (rooms.find(coord2) != rooms.end() && rooms.find(coord3) != rooms.end() && rooms[coord2] == rooms[coord3]){
+                } else if (rooms.count(coord2) && rooms.count(coord3) && rooms[coord2] == rooms[coord3]){
                     room = rooms[coord2];
-                } else if (rooms.find(coord1) != rooms.end() && rooms.find(coord4) != rooms.end() && rooms[coord1] == rooms[coord4]){
+                } else if (rooms.count(coord1) && rooms.count(coord4) && rooms[coord1] == rooms[coord4]){
                     room = rooms[coord1];
                 }
                 for(auto coordinate : potential_room){
@@ -433,7 +391,7 @@ std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
                 for(int i = 0; i < 6; i += 2){
                     std::pair<int, int> coord1 = potential_room[i];
                     std::pair<int, int> coord2 = potential_room[i+1];
-                    if(rooms.find(coord1) != end && rooms.find(coord2) != end && rooms[coord1] == rooms[coord2]){
+                    if(rooms.count(coord1) && rooms.count(coord2) && rooms[coord1] == rooms[coord2]){
                         overlapping_rooms.insert(rooms[coord1]);
                     }
                 }
@@ -442,7 +400,7 @@ std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){
                     for(int i = 0; i < 2; i++){
                         std::pair<int, int> coord1 = potential_room[j+i];
                         std::pair<int, int> coord2 = potential_room[j+2+i];
-                        if(rooms.find(coord1) != end && rooms.find(coord2) != end && rooms[coord1] == rooms[coord2]){
+                        if(rooms.count(coord1) && rooms.count(coord2) && rooms[coord1] == rooms[coord2]){
                             overlapping_rooms.insert(rooms[coord1]);
                         }
                     }
@@ -536,7 +494,7 @@ void FeatureSpaceCell::FindBasins(){
         while(!bfs_queue.empty()){
             std::pair<int, int> current = bfs_queue.front();
             bfs_queue.pop();
-            if(visited.find(current) == visited.end()){
+            if(!visited.count(current) && (!room_by_coord_.count(current) || room_by_coord_[current] != goal_room)){
                 visited.insert(current);
                 int x, y; std::tie(x, y) = current;
                 basins[basin_count].push_back(blocks[x][y]);
@@ -564,13 +522,56 @@ void FeatureSpaceCell::FindBasins(){
         basin_count++;
     }
 
+    //update basin by room, so we could check to which basin a room belongs -- some blocks in the basin don't belong to any room
+    //and basin by coordinate, so we could find which basin this coordinate (x, y) belongs to.
+    for(auto basin : basins){
+        for(auto block : basin.second){
+            std::pair<int, int> coord = std::make_pair(block.GetX(), block.GetY());
+            basin_by_coord_[coord] = basin.first;
+            auto room = room_by_coord_.find(coord);
+            if(room != room_by_coord_.end()){
+                basin_by_room_[room->second] = basin.first;
+            }
+        }
+    }
+
+    //find the basin with the maximum number of boxes
+    int maximum_boxes = 0;
+    int best_basin = -1;
+    for(auto basin : basins){
+        int current_boxes = 0;
+        for(auto block : basin.second){
+            if(block.IsOccupied()) current_boxes++;
+        }
+        if(current_boxes>maximum_boxes){
+            maximum_boxes = current_boxes;
+            best_basin = basin.first;
+        }
+    }
+
+    //find sink room -- the closest room of the best basin to the goal room
+    int sink_room = -1;
+    for(auto block : basins[best_basin]){
+        if(room_by_coord_.count(std::make_pair(block.GetX(), block.GetY()))){
+            sink_room = room_by_coord_[std::make_pair(block.GetX(), block.GetY())];
+            break;
+        }
+    }
+    std::cout<<"Sink room: "<<sink_room<<std::endl;
+    std::cout<<"Best basin: "<<best_basin<<std::endl;
     for(auto basin : basins){
         std::cout<<"Basin "<<basin.first<<":"<<std::endl;
         for(auto block : basin.second){
             block.Print();
         }
     }
-    
+
+    std::cout<<"Rooms by basin:"<<std::endl;
+    for(auto room : basin_by_room_){
+        std::cout<<"Room "<<room.first<<" belongs to basin "<<room.second<<std::endl;
+    }
+    sink_room_basin_ = best_basin;
+    sink_room_=sink_room;
     basins_=basins;
 }
 
@@ -588,9 +589,9 @@ std::vector<std::vector<bool>> FeatureSpaceCell::ComputeAdjacency(){
         while(!bfs_queue.empty()){
             std::pair<int, int> current_block = bfs_queue.front();
             bfs_queue.pop();
-            if(visited.find(current_block) == visited.end()){
+            if(!visited.count(current_block)){
                 visited.insert(current_block);
-                if(room_by_coord_.find(current_block) == room_by_coord_.end() || room_by_coord_[current_block] == i){
+                if(!room_by_coord_.count(current_block) || room_by_coord_[current_block] == i){
                     std::vector<Block> neighbours = blocks[current_block.first][current_block.second].GetNeighbours();
                     for(Block neighbour : neighbours){
                         if( !(neighbour.GetType() == Wall || neighbour.GetType() == Outer) ){
@@ -612,9 +613,16 @@ std::vector<std::vector<bool>> FeatureSpaceCell::ComputeAdjacency(){
 }
 
 void FeatureSpaceCell::PrintRooms(){
-    for(unsigned int i = 0; i < rooms_.size(); i++){
-        for(unsigned int j = 0; j < rooms_[i].size(); j++){
-            std::cout<<rooms_[i][j];
+    std::vector<std::vector<Block>> blocks = board_.GetBlocks();
+    for(auto row : blocks){
+        for(auto block : row){
+            std::pair<int, int> coord = std::make_pair(block.GetX(), block.GetY());
+            auto found = room_by_coord_.find(coord);
+            if(found == room_by_coord_.end()){
+                std::cout<<"_";
+            } else {
+                std::cout<<found->second;
+            }
         }
         std::cout<<std::endl;
     }

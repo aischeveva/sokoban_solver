@@ -55,13 +55,15 @@ Computing rooms correctly:
 class FeatureSpaceCell{
     private:
         BoardState board_; //change it to vector of boards
-        std::vector<std::vector<int>> rooms_;
         std::map<std::pair<int, int>, int> room_by_coord_;
+        std::map<std::pair<int, int>, int> basin_by_coord_;
         std::map<int, std::vector<Block>> blocks_by_room_;
         std::map<int, std::vector<Block>> basins_;
+        std::map<int, int> basin_by_room_;
         std::vector<std::vector<bool>> adjacency_;
         int room_number_;
         int sink_room_;
+        int sink_room_basin_;
         int packing_number_;
         std::vector<Block> packing_order_;
         int connectivity_;
@@ -87,7 +89,6 @@ class FeatureSpaceCell{
         void ComputeOutOfPlan();
 
         /* preparational functions */
-        void FindSinkRoom();
         std::map<std::pair<int,int>, int> FindRooms();
         void FindBasins();
         std::vector<std::vector<bool>> ComputeAdjacency();

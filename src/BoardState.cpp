@@ -173,14 +173,24 @@ void BoardState::ReadBoardState(std::string filename, char level){
 }
 
 void BoardState::PrintBoardState(){
-    for(unsigned int i = 0; i < blocks_.size(); i++){
+    /* for(unsigned int i = 0; i < blocks_.size(); i++){
         for(unsigned int j = 0; j < blocks_[i].size(); j++){
             std::cout<<blocks_[i][j];
         }
         std::cout<<std::endl;
+    } */
+    for(auto box : boxes_){
+        std::cout<<"Box at ("<<box.GetX()<<", "<<box.GetY()<<")"<<std::endl;
     }
 }
 
+void BoardState::UpdateWeight(bool selected){
+    if(selected){
+        weight_ = previous_board_->GetWeight() + 1;
+    }else{
+        weight_ = previous_board_->GetWeight() + 100;
+    }
+}
 //have to add that pushers have to see each other
 bool operator== (const BoardState& b1, const BoardState& b2){
     std::set<std::pair<int, int>> b1_boxes;

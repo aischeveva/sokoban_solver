@@ -55,6 +55,7 @@ class BoardState {
         void ReadBoardState(std::string filename);
         void ReadBoardState(std::string filename, char level);
         void PrintBoardState();
+        void UpdateWeight(bool selected);
 
         bool operator< (const BoardState& right) const { return boxes_.size() < right.GetBoxes().size();}
         friend bool operator== (const BoardState& b1, const BoardState& b2);

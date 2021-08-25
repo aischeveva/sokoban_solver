@@ -52,11 +52,22 @@ void FeatureSpaceCell::ComputePackingOrder(){
     //3) otherwise if a box can be moved from target, move it. Same as before, with several moves pick the one with higher distance
     //4) if 1) and 2) are not possible, just try to maximize the distance.
 	auto cmp = [](std::pair<BoardState*, PackingPlanFeatureSpaceCell> left, std::pair<BoardState*, PackingPlanFeatureSpaceCell> right) { 
-		if(left.first->GetWeight() > right.first->GetWeight()) return true;
-        else if(left.second.GetBoxesOnBoard() < right.second.GetBoxesOnBoard()) return false; 
+		/*if(left.second.GetBoxesOnBoard() > right.second.GetBoxesOnBoard()) return true;
+        //else if(left.first->GetWeight() < right.first->GetWeight()) return false; 
 		else if(left.second.GetBoxesOnTarget() < right.second.GetBoxesOnTarget()) return false;
 		else if(left.second.GetDistance() > right.second.GetDistance()) return false;
-		return true;
+		return true;*/
+        if(left.first->GetWeight() == right.first->GetWeight()){
+            if(left.second.GetBoxesOnBoard() == right.second.GetBoxesOnBoard()){
+                if(left.second.GetBoxesOnTarget() == right.second.GetBoxesOnTarget()){
+                    if(left.second.GetDistance() > right.second.GetDistance()) return false;
+                    else return true;
+                } else if(left.second.GetBoxesOnTarget() < right.second.GetBoxesOnTarget()) return false;
+                else return true;
+            } else if(left.second.GetBoxesOnBoard() < right.second.GetBoxesOnBoard()) return false;
+            else return true;
+        } else if(left.first->GetWeight() < right.first->GetWeight()) return false;
+        else return true;
 
 	 };
 
@@ -65,6 +76,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
     //or the maximum number of iterations is not reached (NOT ADDED YET)
     int iteration_count = 0;
     while(current_cell.GetBoxesOnBoard() != 0 && iteration_count < 150){
+        std::cout<<"Processing iteration "<<iteration_count<<std::endl;
         iteration_count++;
         // get all states that correspond to the current cell of the feature space
         current_states = current_cell.GetStates();

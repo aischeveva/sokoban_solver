@@ -1,21 +1,23 @@
 #include "BoardState.hpp"
 
-BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes){
+BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, Pusher pusher){
     blocks_ = std::move(blocks);
     boxes_ = std::move(boxes);
     nRows_ = blocks_.size();
     nCols_ = blocks_[0].size();
     previous_board_ = NULL;
     weight_ = 0;
+    pusher_=pusher;
 }
 
 //by default the state is not picked by the advisor unless stated otherwise
-BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous, bool picked /*=false*/){
+BoardState::BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous, Pusher pusher, bool picked){
     blocks_ = std::move(blocks);
     boxes_ = std::move(boxes);
     nRows_ = blocks_.size();
     nCols_ = blocks_[0].size();
     previous_board_ = previous;
+    pusher_=pusher;
     if (picked) weight_ = previous_board_->GetWeight() + 1;
     else weight_ = previous_board_->GetWeight() + 100;
 }
@@ -28,6 +30,34 @@ std::vector<Block> BoardState::GetGoals(){
         }
     }
     return targets;
+}
+
+std::set<std::pair<int, int>> BoardState::BlocksAvailableByPusher(){
+    std::stack<std::pair<int, int>> stack;
+    std::vector<std::vector<int>> visited(nRows_, std::vector<int>(nCols_));
+    std::set<std::pair<int, int>> accessible;
+
+    stack.push(std::make_pair(pusher_.GetX(), pusher_.GetY()));
+    while(!stack.empty()){
+        int x = stack.top().first;
+        int y = stack.top().second;
+        stack.pop();
+        if(visited[x][y] == 0){
+            visited[x][y] = 1;
+            std::vector<Block> neighbours = blocks_[x][y].GetNeighbours();
+            for(auto neighbour = neighbours.begin(); neighbour != neighbours.end(); neighbour++){
+                auto type = (*neighbour).GetType();
+                int x = (*neighbour).GetX();
+                int y = (*neighbour).GetY();
+                if ((type == Floor || type == Goal) && !blocks_[x][y].IsOccupied()){
+                    accessible.insert(std::make_pair(x, y));
+                    stack.push(std::make_pair(x, y));
+                }
+            }
+        }
+    }
+
+    return accessible;
 }
 
 bool BoardState::AddBlock(Block block){
@@ -86,8 +116,8 @@ void BoardState::ReadBoardState(std::ifstream& file){
                     else AddBlock(Block(x, i, Floor, false)); 
                     break;}
                 case '#': AddBlock(Block(x, i, Wall, true)); break;
-                case '@': AddBlock(Block(x, i, Floor, true)); AddPusher(Pusher(x, i)); break;
-                case '+': AddBlock(Block(x, i, Goal, true)); AddPusher(Pusher(x, i)); break;
+                case '@': AddBlock(Block(x, i, Floor, false)); AddPusher(Pusher(x, i)); break;
+                case '+': AddBlock(Block(x, i, Goal, false)); AddPusher(Pusher(x, i)); break;
                 case '$': AddBlock(Block(x, i, Floor, true)); AddBox(Box(x, i)); break;
                 case '*': AddBlock(Block(x, i, Goal, true)); AddBox(Box(x, i, true)); break;
                 case '.': AddBlock(Block(x, i, Goal, false));

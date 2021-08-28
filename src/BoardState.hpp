@@ -4,6 +4,7 @@
 #include <fstream>
 #include <iostream>
 #include <set>
+#include <stack>
 #include <string>
 #include <vector>
 
@@ -35,8 +36,8 @@ class BoardState {
     
     public:
         BoardState(){}
-        BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes);
-        BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous, bool picked = false);
+        BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, Pusher pusher);
+        BoardState(std::vector<std::vector<Block>> blocks, std::vector<Box> boxes, BoardState* previous, Pusher pusher, bool picked = false);
 
         unsigned int GetRows() const {return nRows_;}
         unsigned int GetColumns() const {return nCols_;}
@@ -46,6 +47,7 @@ class BoardState {
         Pusher GetPusher() const {return pusher_;}
         std::vector<Block> GetGoals();
         BoardState GetPreviousState() const {return *previous_board_;}
+        std::set<std::pair<int, int>> BlocksAvailableByPusher();
 
         bool AddBlock(Block block);
         void AddBox(Box box);

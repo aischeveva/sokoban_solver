@@ -55,6 +55,7 @@ Computing rooms correctly:
 class FeatureSpaceCell{
     private:
         BoardState board_; //change it to vector of boards
+        std::vector<BoardState*> corresponding_boards_;
         std::map<std::pair<int, int>, int> room_by_coord_;
         std::map<std::pair<int, int>, int> basin_by_coord_;
         std::map<int, std::vector<Block>> blocks_by_room_;
@@ -72,14 +73,15 @@ class FeatureSpaceCell{
 
     public:
         FeatureSpaceCell(){}
-        FeatureSpaceCell(BoardState &boardState): board_(boardState), connectivity_(0), room_connectivity_(0), out_of_plan_(0) {}
+        FeatureSpaceCell(BoardState *boardState): board_(*boardState), connectivity_(0), room_connectivity_(0), out_of_plan_(0) { corresponding_boards_.push_back(boardState); }
 
         /* getters */
         std::vector<Block> GetPackingOrder() const {return packing_order_;}
-        int GetConnectivity() const {return connectivity_;}
-        int GetRoomConnectivity() const {return room_connectivity_;}
-        int GetOutOfPlan() const {return out_of_plan_;}
+        int GetConnectivity() {ComputeConnectivity(); return connectivity_;}
+        int GetRoomConnectivity() {ComputeRoomConnectivity(); return room_connectivity_;}
+        int GetOutOfPlan() {ComputeOutOfPlan(); return out_of_plan_;}
         int GetRoomNumber() const {return room_number_;}
+        std::vector<BoardState*> GetStates() const {return corresponding_boards_;}
 
         /* compute heuristics */
         void ComputePackingNumber();
@@ -88,7 +90,8 @@ class FeatureSpaceCell{
         void ComputeRoomConnectivity();
         void ComputeOutOfPlan();
 
-        /* preparational functions */
+        /* preparational functions and misc*/
+        void AddBoard(BoardState* board);
         std::map<std::pair<int,int>, int> FindRooms();
         void FindBasins();
         std::vector<std::vector<bool>> ComputeAdjacency();

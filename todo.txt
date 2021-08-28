@@ -2,15 +2,24 @@ DONE:
 * connectivity feature computes ok
 * room connectivity computes ok
 * rooms are determined correctly
+* basins are linked to rooms
+* sink room is determined correctly
+* packing order take advisors into account and produces some +- realistic results
+* updated packing order to take into account accessibility of the blocks by the player
 
 TODO:
-1. Link basins to room, pick largest basin based on the box number
-	* how to pick a sink room within a basin
-2. Packing Order feature -- produces some results now
-	* how to take advisor into account
-	* something fishy with move ordering
-	* doesn't produce correct results :(
-3. Out of Plan feature
-4. Hotspots
-5. Advisors
-6. solving routine itself
+1. Out of Plan feature
+	* currently takes into account if a box in the correct basin or not
+	* have to accomodate for parked and packed boxes, currently they would be out of plan
+2. Hotspots
+	* maybe just leave out for now
+	* as well as Explorer and Opener advisors
+3. Advisors
+	* should they even be a separate function?
+4. solving routine itself
+	* take packing order algorithm as a base
+	* define a solver class
+5. Deadlocks :(((
+6. Packing Order feature -- produces some results now
+	* is there a smarter way to impelement advisors than currently?
+	* the results are still questionable on level 15, but no idea how to solve it -- from the algorithm perspective, they are correct, i.e., correspond to the packing plan advisor as defined in the paper. However, these results don't confirm with the packing order for this level suggested by the paper itself (which contradicts the advisor defined). Furthermore, trying to solve the level manually with this packing order turns out to be difficult/impossible (which doesn't prove much, I might be just bad at it).

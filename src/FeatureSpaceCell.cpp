@@ -26,8 +26,10 @@ void FeatureSpaceCell::ComputePackingOrder(){
         boxes_on_goals.push_back(Box(goal.GetX(), goal.GetY(), true));
         blocks[goal.GetX()][goal.GetY()].Occupy();
     }
-    BoardState initial_board = BoardState(blocks, boxes_on_goals);
-    FeatureSpaceCell initial_fsc = FeatureSpaceCell(initial_board);
+    //get some pusher position
+    Block in_sink_room = blocks_by_room_[sink_room_][0];
+    BoardState initial_board = BoardState(blocks, boxes_on_goals, Pusher(in_sink_room.GetX(), in_sink_room.GetY()));
+    FeatureSpaceCell initial_fsc = FeatureSpaceCell(&initial_board);
     initial_fsc.ComputeConnectivity();
     int initial_connectivity = initial_fsc.GetConnectivity();
     //set up list of feature cells in feature space
@@ -120,11 +122,11 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             std::vector<std::vector<Block>> new_blocks = current_macro_move->GetBlocks();
                             new_boxes.erase(new_boxes.begin() + i);
                             new_blocks[x][y].Free();
-                            current_macro_move = new BoardState(new_blocks, new_boxes, current_state);
+                            current_macro_move = new BoardState(new_blocks, new_boxes, current_state, Pusher(x, y));
                             // add it to the possible moves if it's not in the move tree already
                             if(std::find(move_tree.begin(), move_tree.end(), *current_macro_move) == move_tree.end()){
                                 //check if the move would be selected by advisor
-                                FeatureSpaceCell connectivity_check = FeatureSpaceCell(*current_macro_move);
+                                FeatureSpaceCell connectivity_check = FeatureSpaceCell(current_macro_move);
                                 connectivity_check.ComputeConnectivity();
                                 if(connectivity_check.GetConnectivity() <= initial_connectivity && possible_to_push) current_macro_move->UpdateWeight(true);
                                 
@@ -135,7 +137,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             // add current move to moves possible from the current state if it's not in the move tree already
                             if(std::find(move_tree.begin(), move_tree.end(), *current_macro_move) == move_tree.end()){
                                 //check if the move would be selected by advisor
-                                FeatureSpaceCell connectivity_check = FeatureSpaceCell(*current_macro_move);
+                                FeatureSpaceCell connectivity_check = FeatureSpaceCell(current_macro_move);
                                 connectivity_check.ComputeConnectivity();
                                 if(connectivity_check.GetConnectivity() <= initial_connectivity && possible_to_push) current_macro_move->UpdateWeight(true);
                                 
@@ -144,14 +146,17 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             //otherwise check if there is enough space to pull the box in each four directions
                             std::vector<Box> new_boxes;
                             std::vector<std::vector<Block>> new_blocks;
+                            //also check if those positions are accessible by Pusher from the current state
+                            std::set<std::pair<int, int>> accessible_positions = current_macro_move->BlocksAvailableByPusher();
                             //check North
-                            if(!blocks[x-1][y].IsOccupied() && !blocks[x-2][y].IsOccupied()){
+                            if(!blocks[x-1][y].IsOccupied() && !blocks[x-2][y].IsOccupied() && 
+                            accessible_positions.count(std::make_pair(x-1, y)) && accessible_positions.count(std::make_pair(x-2, y))){
                                 new_boxes = current_macro_move->GetBoxes();
                                 new_blocks = current_macro_move->GetBlocks();
                                 new_blocks[x][y].Free();
                                 new_blocks[x-1][y].Occupy();
                                 new_boxes[i].Move(North);
-                                BoardState* new_state = new BoardState(new_blocks, new_boxes, current_state);
+                                BoardState* new_state = new BoardState(new_blocks, new_boxes, current_state, Pusher(x-2, y));
                                 bool possible = false;
                                 //check if it's possible to push box in this position
                                 //do that only if the current move is actually possible
@@ -165,13 +170,14 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 available_moves.push(std::make_pair(new_state, possible));
                             }
                             //check South
-                            if(!blocks[x+1][y].IsOccupied() && !blocks[x+2][y].IsOccupied()){
+                            if(!blocks[x+1][y].IsOccupied() && !blocks[x+2][y].IsOccupied() && 
+                            accessible_positions.count(std::make_pair(x+1, y)) && accessible_positions.count(std::make_pair(x+2, y))){
                                 new_boxes = current_macro_move->GetBoxes();
                                 new_blocks = current_macro_move->GetBlocks();
                                 new_blocks[x][y].Free();
                                 new_blocks[x+1][y].Occupy();
                                 new_boxes[i].Move(South);
-                                BoardState* new_state = new BoardState(new_blocks, new_boxes, current_state);
+                                BoardState* new_state = new BoardState(new_blocks, new_boxes, current_state, Pusher(x+2, y));
                                 bool possible = false;
                                 //check if it's possible to push box in this position
                                 //do that only if the current move is actually possible
@@ -185,13 +191,14 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 available_moves.push(std::make_pair(new_state, possible));
                             }
                             //check East
-                            if(!blocks[x][y+1].IsOccupied() && !blocks[x][y+2].IsOccupied()){
+                            if(!blocks[x][y+1].IsOccupied() && !blocks[x][y+2].IsOccupied() && 
+                            accessible_positions.count(std::make_pair(x, y+1)) && accessible_positions.count(std::make_pair(x, y+2))){
                                 new_boxes = current_macro_move->GetBoxes();
                                 new_blocks = current_macro_move->GetBlocks();
                                 new_blocks[x][y].Free();
                                 new_blocks[x][y+1].Occupy();
                                 new_boxes[i].Move(East);
-                                BoardState* new_state = new BoardState(new_blocks, new_boxes, current_state);
+                                BoardState* new_state = new BoardState(new_blocks, new_boxes, current_state, Pusher(x, y+2));
                                 bool possible = false;
                                 //check if it's possible to push box in this position
                                 //do that only if the current move is actually possible
@@ -205,13 +212,14 @@ void FeatureSpaceCell::ComputePackingOrder(){
                                 available_moves.push(std::make_pair(new_state, possible));
                             }
                             //check West
-                            if(!blocks[x][y-1].IsOccupied() && !blocks[x][y-2].IsOccupied()){
+                            if(!blocks[x][y-1].IsOccupied() && !blocks[x][y-2].IsOccupied() && 
+                            accessible_positions.count(std::make_pair(x, y-1)) && accessible_positions.count(std::make_pair(x, y-2))){
                                 new_boxes = current_macro_move->GetBoxes();
                                 new_blocks = current_macro_move->GetBlocks();
                                 new_blocks[x][y].Free();
                                 new_blocks[x][y-1].Occupy();
                                 new_boxes[i].Move(West);
-                                BoardState* new_state = new BoardState(new_blocks, new_boxes, current_state);
+                                BoardState* new_state = new BoardState(new_blocks, new_boxes, current_state, Pusher(x, y-2));
                                 bool possible = false;
                                 //check if it's possible to push box in this position
                                 //do that only if the current move is actually possible
@@ -383,6 +391,10 @@ void FeatureSpaceCell::ComputeOutOfPlan(){
             out_of_plan_++;
         }
     }
+}
+
+void FeatureSpaceCell::AddBoard(BoardState* board){
+    corresponding_boards_.push_back(board);
 }
 
 std::map<std::pair<int,int>, int> FeatureSpaceCell::FindRooms(){

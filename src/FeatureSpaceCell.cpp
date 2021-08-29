@@ -38,12 +38,13 @@ void FeatureSpaceCell::ComputePackingOrder(){
     PackingPlanFeatureSpaceCell initial_cell = PackingPlanFeatureSpaceCell(&initial_board);
     feature_space.push_back(initial_cell);
 
-    // set up the move "tree" -- a map (state -> weight) should be sufficient probably
+    // set up the move "tree" -- a vector of board states should be sufficient probably
     // push back the initial domain state
     std::vector<BoardState> move_tree;
     move_tree.push_back(initial_board);
 
     // vector to hold all states corresponding to current cell in feature space
+    // during the first iteration there is only one state -- initial state
     std::vector<BoardState*> current_states; 
     current_states = initial_cell.GetStates();
     PackingPlanFeatureSpaceCell current_cell = initial_cell;
@@ -54,11 +55,6 @@ void FeatureSpaceCell::ComputePackingOrder(){
     //3) otherwise if a box can be moved from target, move it. Same as before, with several moves pick the one with higher distance
     //4) if 1) and 2) are not possible, just try to maximize the distance.
 	auto cmp = [](std::pair<BoardState*, PackingPlanFeatureSpaceCell> left, std::pair<BoardState*, PackingPlanFeatureSpaceCell> right) { 
-		/*if(left.second.GetBoxesOnBoard() > right.second.GetBoxesOnBoard()) return true;
-        //else if(left.first->GetWeight() < right.first->GetWeight()) return false; 
-		else if(left.second.GetBoxesOnTarget() < right.second.GetBoxesOnTarget()) return false;
-		else if(left.second.GetDistance() > right.second.GetDistance()) return false;
-		return true;*/
         if(left.first->GetWeight() == right.first->GetWeight()){
             if(left.second.GetBoxesOnBoard() == right.second.GetBoxesOnBoard()){
                 if(left.second.GetBoxesOnTarget() == right.second.GetBoxesOnTarget()){
@@ -75,10 +71,11 @@ void FeatureSpaceCell::ComputePackingOrder(){
 
     // TODO: have better definition on when the situation is solved
     //search feature space while all the boxes are not deleted
-    //or the maximum number of iterations is not reached (NOT ADDED YET)
+    //or the maximum number of iterations is not reached
     int iteration_count = 0;
     while(current_cell.GetBoxesOnBoard() != 0 && iteration_count < 150){
-        std::cout<<"Processing iteration "<<iteration_count<<std::endl;
+        // debugging print
+        // std::cout<<"Processing iteration "<<iteration_count<<std::endl;
         iteration_count++;
         // get all states that correspond to the current cell of the feature space
         current_states = current_cell.GetStates();
@@ -88,36 +85,36 @@ void FeatureSpaceCell::ComputePackingOrder(){
         //TODO: check that local current state and current state are used correctly
         for(auto &current_state : current_states){
             //look at moving one box at a time
-            //auto parent_state = std::find(move_tree.begin(), move_tree.end(), current_state);
             unsigned int number_of_boxes = current_state->GetBoxes().size();
             for(unsigned int i = 0; i < number_of_boxes; i++){
                 // moves available for i_th box only
                 // tries to find all available macro moves for this box
-                //keep locally explored moves
+                // keep locally explored moves
                 std::vector<BoardState> explored_moves;
                 bool box_removed = false;
-                // TODO: should take into account if the box can be pushed in this position or if it's its starting position
+                // should take into account if the box can be pushed in this position or if it's its starting position
                 // keep a pair -- a state and if it can be pushed in this position
                 std::stack<std::pair<BoardState*, bool>> available_moves;
                 BoardState* current_macro_move = current_state;
                 available_moves.push(std::make_pair(current_macro_move, true));
+                // run bfs
                 while(!available_moves.empty() && !box_removed){
+                    // take an available move from the top of the queue
                     std::pair<BoardState*, bool> top = available_moves.top();
                     bool possible_to_push;
                     std::tie(current_macro_move, possible_to_push) = top;
                     available_moves.pop();
                     //if the move hasn't been explored yet
                     if(std::find(explored_moves.begin(), explored_moves.end(), *current_macro_move) == explored_moves.end()){
-                        // mark move as checked
+                        // mark a move as checked
                         explored_moves.push_back(*current_macro_move);
                         blocks = current_macro_move->GetBlocks();
                         int x = current_macro_move->GetBoxes()[i].GetX();
                         int y = current_macro_move->GetBoxes()[i].GetY();
                         // if a box reached a sink room, remove it from the board and stop exploration for this box
-                        // for now let's assume that is the only move that would be picked by advisor
-                        // TODO: but in reality need to add connectivity check
                         std::pair<int, int> coord = std::make_pair(x, y);
                         if(room_by_coord_.count(coord) && room_by_coord_[coord] == sink_room_){
+                            // remove box from board for the new state
                             std::vector<Box> new_boxes = current_macro_move->GetBoxes();
                             std::vector<std::vector<Block>> new_blocks = current_macro_move->GetBlocks();
                             new_boxes.erase(new_boxes.begin() + i);
@@ -125,7 +122,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
                             current_macro_move = new BoardState(new_blocks, new_boxes, current_state, Pusher(x, y));
                             // add it to the possible moves if it's not in the move tree already
                             if(std::find(move_tree.begin(), move_tree.end(), *current_macro_move) == move_tree.end()){
-                                //check if the move would be selected by advisor
+                                //check if the move would be selected by advisor: connectivity is not worsen and it's possible to push
                                 FeatureSpaceCell connectivity_check = FeatureSpaceCell(current_macro_move);
                                 connectivity_check.ComputeConnectivity();
                                 if(connectivity_check.GetConnectivity() <= initial_connectivity && possible_to_push) current_macro_move->UpdateWeight(true);
@@ -136,14 +133,14 @@ void FeatureSpaceCell::ComputePackingOrder(){
                         } else {
                             // add current move to moves possible from the current state if it's not in the move tree already
                             if(std::find(move_tree.begin(), move_tree.end(), *current_macro_move) == move_tree.end()){
-                                //check if the move would be selected by advisor
+                                //check if the move would be selected by advisor: connectivity is not worsen and it's possible to push
                                 FeatureSpaceCell connectivity_check = FeatureSpaceCell(current_macro_move);
                                 connectivity_check.ComputeConnectivity();
                                 if(connectivity_check.GetConnectivity() <= initial_connectivity && possible_to_push) current_macro_move->UpdateWeight(true);
                                 
                                 possible_moves.push(std::make_pair(current_macro_move, PackingPlanFeatureSpaceCell(current_macro_move)));
                             }
-                            //otherwise check if there is enough space to pull the box in each four directions
+                            //otherwise check if there is enough space to pull the box in each of the four directions
                             std::vector<Box> new_boxes;
                             std::vector<std::vector<Block>> new_blocks;
                             //also check if those positions are accessible by Pusher from the current state
@@ -242,7 +239,7 @@ void FeatureSpaceCell::ComputePackingOrder(){
         BoardState* best_move = possible_moves.top().first;
         PackingPlanFeatureSpaceCell best_cell = possible_moves.top().second;
 
-        //add a move to the tree and parent connection
+        //add a move to the tree
         move_tree.push_back(*best_move);
  
         //check if the cell in feature space was already discovered:
@@ -275,12 +272,13 @@ void FeatureSpaceCell::ComputePackingOrder(){
         path.push_back(next);
     }
 
-    int i = 0;
+    // debug print of all the board states in the packing plan represented by box positions
+    /*int i = 0;
     for(auto state : path){
         std::cout<<"State "<<i<<":"<<std::endl;
         state.PrintBoardState();
         i++;
-    }
+    }*/
 
     //get the order of goal squares from the path of board states
     for(auto state : path){
@@ -298,12 +296,12 @@ void FeatureSpaceCell::ComputePackingOrder(){
 void FeatureSpaceCell::ComputeConnectivity(){
     std::stack<std::pair<int, int>> stack;
     std::vector<std::vector<int>> visited(board_.GetRows(), std::vector<int>(board_.GetColumns()));
-    std::vector<std::vector<int>> room(board_.GetRows(), std::vector<int>(board_.GetColumns()));
     std::vector<std::vector<Block>> blocks = board_.GetBlocks();
     std::vector<Box> boxes = board_.GetBoxes();
     int nRows = board_.GetRows();
     int nCols = board_.GetColumns();
 
+    // run a dfs search starting from each unvisited block and increase a connectivity by one every time
     for(unsigned int i = 1; i < nRows - 1; i++){
         for(unsigned int j = 1; j < nCols - 1; j++){
             BlockType type = blocks[i][j].GetType();
@@ -313,7 +311,6 @@ void FeatureSpaceCell::ComputeConnectivity(){
                 while(!stack.empty()){
                     int x = stack.top().first;
                     int y = stack.top().second;
-                    room[x][y] = connectivity_;
                     stack.pop();
                     if(visited[x][y] == 0){
                         visited[x][y] = 1;
@@ -335,7 +332,7 @@ void FeatureSpaceCell::ComputeConnectivity(){
 
 void FeatureSpaceCell::ComputeRoomConnectivity(){
     //go room by room through the upper triangle of the adjacency matrix
-    //check if any edges that are supposed to be there obstructed by boxes
+    //check if any edges that are supposed to be there are obstructed by boxes
     std::vector<std::vector<Block>> blocks = board_.GetBlocks();
     int broken_edges = 0;
     for(int i = 0; i < room_number_; i++){
@@ -344,7 +341,7 @@ void FeatureSpaceCell::ComputeRoomConnectivity(){
                 std::vector<Block> room_blocks = blocks_by_room_[i];
                 std::set<std::pair<int, int>> visited;
                 bool reached = false;
-                //check paths from all the blocks if necessary
+                //check paths from all the blocks in the room if necessary
                 for(auto block : room_blocks){
                     std::pair<int, int> coord = std::make_pair(block.GetX(), block.GetY());
                     if(!reached && !block.IsOccupied() && visited.find(coord) == visited.end()){
@@ -371,7 +368,8 @@ void FeatureSpaceCell::ComputeRoomConnectivity(){
                 }
                 if(!reached) {
                     broken_edges++;
-                    std::cout<<"Broken edge between rooms "<<i<<" and "<<j<<std::endl;
+                    // debug print
+                    // std::cout<<"Broken edge between rooms "<<i<<" and "<<j<<std::endl;
                 }
             }
         }
@@ -380,7 +378,7 @@ void FeatureSpaceCell::ComputeRoomConnectivity(){
 }
 
 void FeatureSpaceCell::ComputeOutOfPlan(){
-    /// TODO
+    /// TODO: add parked boxes
     std::vector<Box> boxes = board_.GetBoxes();
     for(auto box : boxes){
         std::pair<int, int> coord = std::make_pair(box.GetX(), box.GetY());
@@ -591,7 +589,7 @@ void FeatureSpaceCell::FindBasins(){
                 visited.insert(current);
                 int x, y; std::tie(x, y) = current;
                 basins[basin_count].push_back(blocks[x][y]);
-                //check if box can be pushed to the current square from all four directions
+                //check if box can be pushed to the current square from each of the four directions one by one
                 //basically that means that both the neighbour square and square behind it are of type Floor
 
                 //check North
@@ -650,6 +648,8 @@ void FeatureSpaceCell::FindBasins(){
             break;
         }
     }
+
+    // debug prints
     /*std::cout<<"Sink room: "<<sink_room<<std::endl;
     std::cout<<"Best basin: "<<best_basin<<std::endl;
     for(auto basin : basins){
@@ -663,6 +663,7 @@ void FeatureSpaceCell::FindBasins(){
     for(auto room : basin_by_room_){
         std::cout<<"Room "<<room.first<<" belongs to basin "<<room.second<<std::endl;
     }*/
+
     sink_room_basin_ = best_basin;
     sink_room_=sink_room;
     basins_=basins;
@@ -679,6 +680,7 @@ std::vector<std::vector<bool>> FeatureSpaceCell::ComputeAdjacency(){
         std::set<std::pair<int, int>> visited;
         std::queue<std::pair<int, int>> bfs_queue;
         bfs_queue.push(std::make_pair(room_blocks[0].GetX(), room_blocks[0].GetY()));
+        // run a bfs to find a path from the current room to other rooms that wouldn't cross any third room on its way
         while(!bfs_queue.empty()){
             std::pair<int, int> current_block = bfs_queue.front();
             bfs_queue.pop();

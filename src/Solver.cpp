@@ -14,3 +14,8 @@ bool Solver::RoomConnectivityAdvisor(FeatureSpaceCell current_state, FeatureSpac
 bool HotspotsAdvisor(FeatureSpaceCell current_state, FeatureSpaceCell next_state);
 bool ExplorerAdvisor(FeatureSpaceCell current_state, FeatureSpaceCell next_state);
 bool OpenerAdvisor(FeatureSpaceCell current_state, FeatureSpaceCell next_state);
+
+bool OutOfPlanAdvisor(FeatureSpaceCell current_state, FeatureSpaceCell next_state){
+    if(next_state.GetOutOfPlan() < current_state.GetOutOfPlan()) return true;
+    else return false;
+}

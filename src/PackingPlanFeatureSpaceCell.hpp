@@ -8,6 +8,23 @@
 #include "BoardState.hpp"
 #include "Block.hpp"
 
+/** 
+ * \class PackingPlanFeatureSpaceCell
+ * \brief A cell in the packing plan feature space.
+ * Packing order computations utilize their own feature space 
+ * that consists of boxes on boards, boxes on targets (goals) and the sum of shortest distances from each box to its closest goal block.
+ * 
+ * The only advisor used checks that the move doesn't worsen connectivity and it is either possible to push box in this position or there is a box there at the start of the level.
+ * Although the advisor is described here, it is implemented in FeatureSpaceCell.cpp, where the packing plan is computed.
+ * 
+ * 
+ * \author A. SHCHEVYEVA
+ * \version 1.1 
+ * 
+ * Created on: 22/07/2021
+ *
+ */ 
+
 class PackingPlanFeatureSpaceCell
 {
 private:
@@ -30,6 +47,7 @@ public:
     void UpdateBoxesOnTarget();
     void UpdateDistance();
 
+    // two cells in the feature space are equal if all their feature values are equal
     friend bool operator== (const PackingPlanFeatureSpaceCell &p1, const PackingPlanFeatureSpaceCell &p2);
 
 

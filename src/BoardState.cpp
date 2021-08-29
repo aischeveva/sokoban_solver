@@ -32,7 +32,8 @@ std::vector<Block> BoardState::GetGoals(){
     return targets;
 }
 
-std::set<std::pair<int, int>> BoardState::BlocksAvailableByPusher(){
+std::set<std::pair<int, int>> BoardState::BlocksAvailableByPusher() const{
+    // runs a dfs to find all locations accessible to the player from the current position with the current boxes on board
     std::stack<std::pair<int, int>> stack;
     std::vector<std::vector<int>> visited(nRows_, std::vector<int>(nCols_));
     std::set<std::pair<int, int>> accessible;
@@ -63,18 +64,24 @@ std::set<std::pair<int, int>> BoardState::BlocksAvailableByPusher(){
 bool BoardState::AddBlock(Block block){
     unsigned int x = block.GetX();
     unsigned int y = block.GetY();
+    // if the current number of rows is less than the x coordinate of the block
+    // add a new row with the block being the first one in it
     if (blocks_.size() < x + 1){
         std::vector<Block> newRow = {block};
         nRows_++;
         blocks_.push_back(newRow);
         return true;
     } else if (blocks_[x].size() < y + 1){
+        // when adding to an existing row, check that it's size is smaller than the y coordiante of the block
+        // if it is, add a new block to the end of the row
         blocks_[x].push_back(block);
         if (nCols_ < blocks_[x].size()){
             nCols_++;
         }
         return true;
     }
+    // otherwise exit with error, because this block already exist
+    // normally shouldn't happen
     return false;
 }
 
@@ -221,7 +228,7 @@ void BoardState::UpdateWeight(bool selected){
         weight_ = previous_board_->GetWeight() + 100;
     }
 }
-//have to add that pushers have to see each other
+
 bool operator== (const BoardState& b1, const BoardState& b2){
     std::set<std::pair<int, int>> b1_boxes;
     std::set<std::pair<int, int>> b2_boxes;
@@ -232,5 +239,5 @@ bool operator== (const BoardState& b1, const BoardState& b2){
         b1_boxes.insert(std::make_pair(b1b[i].GetX(), b1b[i].GetY()));
         b2_boxes.insert(std::make_pair(b2b[i].GetX(), b2b[i].GetY()));
     }
-    return b1_boxes == b2_boxes;
+    return (b1_boxes == b2_boxes) && (b1.BlocksAvailableByPusher() == b2.BlocksAvailableByPusher());
 }

@@ -25,9 +25,9 @@ class Box: public Object {
         Box(unsigned int x, unsigned int y, bool isDelivered): Object(x, y){ isDelivered_ = isDelivered;}
 
         /* Getters */
-        bool IsDelivered() const {return isDelivered_;}
+        bool IsDelivered() const {return isDelivered_;} // not really used currently, but might be used in the future
 
-        /* Setters */
+        /* Setters (same as getters, not currently used) */
         void Deliver() {isDelivered_ = true;}
         void Undeliver() {isDelivered_ = false;}
 

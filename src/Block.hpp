@@ -8,7 +8,11 @@
  * \class Block
  * \brief Generic block.
  * This class manages generic map block interface.
- * 
+ * There are four types of blocks: wall, floor, goal and outer. 
+ * The latter one represents blocks that are located beyond the level wall blocks to keep the level representation in a rectangle (some levels might be of somewhat irregular shapes).
+ * The block is occupied when a box stands on it.
+ * In theory, blocks should keep track of its neighbours, but in current implementation that basically means just the coordinates, but not the other useful information.
+ * It should be updated to contain pointer to neighbours rather than the object's copies.
  * 
  * \author A. SHCHEVYEVA
  * \version 1.1 
@@ -87,6 +91,7 @@ class Block {
          */
         void Free() {occupied_ = false;}
 
+        //helper function for reading the level maps correctly
         void ChangeType(BlockType type) {type_ = type;}
 
         void AddNeighbour(Block block) {neighbours_.push_back(block); /*[neighbour_count_] = block; neighbour_count_++;*/}
@@ -105,6 +110,8 @@ class Block {
 
             return os;
         }
+
+        //two blocks are the same if their coordinate match
         friend bool operator==(const Block& b1, const Block& b2){
             if(b1.GetX() == b2.GetX() && b1.GetY() == b2.GetY()) return true;
             else return false;

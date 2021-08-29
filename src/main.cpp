@@ -10,6 +10,7 @@
 
 int main(int argc, char *argv[])
 {
+	// mostly just testing all the helper functions currently
 	BoardState testBoard = BoardState();
 	std::cout<<"Loading file. "<<std::endl;
 

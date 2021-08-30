@@ -8,6 +8,16 @@
 #include "BoardState.hpp"
 #include "FeatureSpaceCell.hpp"
 
+/** 
+ * Main function, currently mostly used for testing.
+ * 
+ * \author A. SHCHEVYEVA
+ * \version 1.1 
+ * 
+ * Created on: 02/06/2021
+ *
+ */ 
+
 int main(int argc, char *argv[])
 {
 	// mostly just testing all the helper functions currently
